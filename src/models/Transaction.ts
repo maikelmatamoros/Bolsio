@@ -7,6 +7,7 @@ export class Transaction implements ITransaction {
   category: string;
   description: string;
   date: Date;
+  accountId: string;
 
   constructor({
     id,
@@ -15,6 +16,7 @@ export class Transaction implements ITransaction {
     category = '',
     description = '',
     date = new Date(),
+    accountId = '',
   }: Partial<ITransaction> & { id?: string | null } = {}) {
     this.id = id ?? Date.now().toString();
     this.type = type;
@@ -22,6 +24,7 @@ export class Transaction implements ITransaction {
     this.category = category;
     this.description = description;
     this.date = date instanceof Date ? date : new Date(date);
+    this.accountId = accountId;
   }
 
   // Método para convertir a objeto plano (para guardar)
@@ -33,6 +36,7 @@ export class Transaction implements ITransaction {
       category: this.category,
       description: this.description,
       date: this.date.toISOString(),
+      accountId: this.accountId,
     };
   }
 

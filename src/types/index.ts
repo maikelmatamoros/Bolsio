@@ -8,6 +8,7 @@ export interface ITransaction {
   category: string;
   description: string;
   date: Date;
+  accountId: string; // ID de la cuenta donde se registra
 }
 
 export interface TransactionJSON {
@@ -17,6 +18,30 @@ export interface TransactionJSON {
   category: string;
   description: string;
   date: string;
+  accountId: string;
+}
+
+// Tipos para cuentas/sobres
+export type AccountType = 'bank' | 'cash' | 'card' | 'digital';
+
+export interface IAccount {
+  id: string;
+  name: string;
+  type: AccountType;
+  balance: number;
+  icon: string;
+  color: string;
+  isActive: boolean;
+}
+
+export interface AccountJSON {
+  id: string;
+  name: string;
+  type: AccountType;
+  balance: number;
+  icon: string;
+  color: string;
+  isActive: boolean;
 }
 
 // Tipos para categorías
@@ -37,6 +62,7 @@ export interface ValidationErrors {
   amount?: string;
   category?: string;
   description?: string;
+  accountId?: string;
 }
 
 export interface ValidationResult {
@@ -44,7 +70,7 @@ export interface ValidationResult {
   errors: ValidationErrors;
 }
 
-// Tipos para el contexto
+// Tipos para el contexto de transacciones
 export interface TransactionContextType {
   transactions: ITransaction[];
   loading: boolean;
@@ -57,4 +83,18 @@ export interface TransactionContextType {
   getTotalExpense: () => number;
   getTransactionsByType: (type: TransactionType) => ITransaction[];
   getTransactionsByCategory: (category: string) => ITransaction[];
+  getTransactionsByAccount: (accountId: string) => ITransaction[];
+}
+
+// Tipos para el contexto de cuentas
+export interface AccountContextType {
+  accounts: IAccount[];
+  loading: boolean;
+  addAccount: (accountData: Partial<IAccount>) => Promise<boolean>;
+  deleteAccount: (id: string) => Promise<boolean>;
+  updateAccount: (id: string, updatedData: Partial<IAccount>) => Promise<boolean>;
+  updateAccountBalance: (id: string, amount: number, operation: 'add' | 'subtract') => Promise<boolean>;
+  loadAccounts: () => Promise<void>;
+  getAccountById: (id: string) => IAccount | undefined;
+  getTotalBalance: () => number;
 }

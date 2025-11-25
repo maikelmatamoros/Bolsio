@@ -20,9 +20,14 @@ export const TransactionProvider: React.FC<TransactionProviderProps> = ({ childr
 
   const loadTransactions = async (): Promise<void> => {
     setLoading(true);
-    const data = await StorageService.getTransactions();
-    setTransactions(data);
-    setLoading(false);
+    try {
+      const data = await StorageService.getTransactions();
+      setTransactions(data);
+    } catch (error) {
+      console.error('[TransactionContext] Error cargando transacciones:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Agregar transacción
@@ -55,27 +60,52 @@ export const TransactionProvider: React.FC<TransactionProviderProps> = ({ childr
 
   // Obtener balance total
   const getBalance = (): number => {
-    return transactions.reduce((acc, transaction) => {
-      if (transaction.type === 'income') {
-        return acc + transaction.amount;
-      } else {
-        return acc - transaction.amount;
+    try {
+      if (!transactions || transactions.length === 0) {
+        return 0;
       }
-    }, 0);
+      
+      return transactions.reduce((acc, transaction) => {
+        if (transaction.type === 'income') {
+          return acc + transaction.amount;
+        } else {
+          return acc - transaction.amount;
+        }
+      }, 0);
+    } catch (error) {
+      console.error('[TransactionContext] Error en getBalance:', error);
+      return 0;
+    }
   };
 
   // Obtener total de ingresos
   const getTotalIncome = (): number => {
-    return transactions
-      .filter(t => t.type === 'income')
-      .reduce((acc, t) => acc + t.amount, 0);
+    try {
+      if (!transactions || transactions.length === 0) {
+        return 0;
+      }
+      return transactions
+        .filter(t => t.type === 'income')
+        .reduce((acc, t) => acc + t.amount, 0);
+    } catch (error) {
+      console.error('[TransactionContext] Error en getTotalIncome:', error);
+      return 0;
+    }
   };
 
   // Obtener total de gastos
   const getTotalExpense = (): number => {
-    return transactions
-      .filter(t => t.type === 'expense')
-      .reduce((acc, t) => acc + t.amount, 0);
+    try {
+      if (!transactions || transactions.length === 0) {
+        return 0;
+      }
+      return transactions
+        .filter(t => t.type === 'expense')
+        .reduce((acc, t) => acc + t.amount, 0);
+    } catch (error) {
+      console.error('[TransactionContext] Error en getTotalExpense:', error);
+      return 0;
+    }
   };
 
   // Obtener transacciones filtradas por tipo
@@ -86,6 +116,11 @@ export const TransactionProvider: React.FC<TransactionProviderProps> = ({ childr
   // Obtener transacciones por categoría
   const getTransactionsByCategory = (category: string): ITransaction[] => {
     return transactions.filter(t => t.category === category);
+  };
+
+  // Obtener transacciones por cuenta
+  const getTransactionsByAccount = (accountId: string): ITransaction[] => {
+    return transactions.filter(t => t.accountId === accountId);
   };
 
   const value: TransactionContextType = {
@@ -100,6 +135,7 @@ export const TransactionProvider: React.FC<TransactionProviderProps> = ({ childr
     getTotalExpense,
     getTransactionsByType,
     getTransactionsByCategory,
+    getTransactionsByAccount,
   };
 
   return (

@@ -16,11 +16,11 @@ import { formatCurrency } from '../utils/formatters';
 import { TransactionType } from '../types';
 
 interface NavigationProp {
-  navigate: (screen: string, params?: { type: TransactionType }) => void;
+  navigate: (screen: string, params?: { type?: TransactionType }) => void;
 }
 
 interface HomeScreenProps {
-  navigation: NavigationProp;
+  navigation?: NavigationProp;
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
@@ -80,14 +80,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         <View style={styles.actionsContainer}>
           <TouchableOpacity 
             style={[styles.actionButton, { backgroundColor: colors.income }]}
-            onPress={() => navigation.navigate('AddTransaction', { type: 'income' })}
+            onPress={() => navigation?.navigate('AddTransaction', { type: 'income' })}
           >
             <Text style={styles.actionButtonIcon}>💰</Text>
             <Text style={styles.actionButtonText}>Ingreso</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.actionButton, { backgroundColor: colors.expense }]}
-            onPress={() => navigation.navigate('AddTransaction', { type: 'expense' })}
+            onPress={() => navigation?.navigate('AddTransaction', { type: 'expense' })}
           >
             <Text style={styles.actionButtonIcon}>💸</Text>
             <Text style={styles.actionButtonText}>Gasto</Text>
@@ -99,7 +99,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <View style={styles.recentHeader}>
             <Text style={styles.sectionTitle}>Transacciones Recientes</Text>
             {transactions.length > 5 && (
-              <TouchableOpacity onPress={() => navigation.navigate('TransactionsList')}>
+              <TouchableOpacity onPress={() => navigation?.navigate('TransactionsList')}>
                 <Text style={styles.seeAllText}>Ver todas</Text>
               </TouchableOpacity>
             )}
@@ -138,24 +138,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: 20,
-    paddingTop: 10,
+    padding: 16,
+    paddingTop: 8,
     backgroundColor: colors.surface,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: colors.text,
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: colors.textLight,
-    marginTop: 4,
+    marginTop: 2,
   },
   balanceCard: {
     marginHorizontal: 16,
     backgroundColor: colors.primary,
-    padding: 24,
+    padding: 20,
     marginTop: 8,
   },
   balanceLabel: {
@@ -164,16 +164,16 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   balanceAmount: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: 'bold',
     color: colors.white,
-    marginVertical: 8,
+    marginVertical: 6,
   },
   balanceDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16,
-    paddingTop: 16,
+    marginTop: 12,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.2)',
   },
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   balanceItemAmount: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     marginTop: 4,
     color: colors.white,
@@ -194,12 +194,12 @@ const styles = StyleSheet.create({
   actionsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 16,
-    marginTop: 20,
+    marginTop: 16,
     gap: 12,
   },
   actionButton: {
     flex: 1,
-    padding: 20,
+    padding: 16,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -213,16 +213,17 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   actionButtonIcon: {
-    fontSize: 32,
-    marginBottom: 8,
+    fontSize: 28,
+    marginBottom: 6,
   },
   actionButtonText: {
     color: colors.white,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   recentSection: {
     padding: 16,
+    paddingTop: 12,
   },
   recentHeader: {
     flexDirection: 'row',
@@ -231,7 +232,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: colors.text,
   },
