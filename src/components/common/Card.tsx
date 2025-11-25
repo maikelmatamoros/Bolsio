@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
-import { colors } from '../../constants/colors';
+import { ViewStyle, StyleProp } from 'react-native';
+import { Card as PaperCard } from 'react-native-paper';
 
 interface CardProps {
   children: React.ReactNode;
@@ -8,22 +8,11 @@ interface CardProps {
 }
 
 export const Card: React.FC<CardProps> = ({ children, style }) => {
-  return <View style={[styles.card, style]}>{children}</View>;
+  return (
+    <PaperCard style={style} mode="elevated" elevation={1}>
+      <PaperCard.Content>
+        {children}
+      </PaperCard.Content>
+    </PaperCard>
+  );
 };
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 8,
-    shadowColor: colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-});

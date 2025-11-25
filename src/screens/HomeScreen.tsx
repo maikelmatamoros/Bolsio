@@ -5,8 +5,8 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useTransactions } from '../context/TransactionContext';
 import { Card } from '../components/common/Card';
@@ -140,6 +140,7 @@ const styles = StyleSheet.create({
   header: {
     padding: 20,
     paddingTop: 10,
+    backgroundColor: colors.surface,
   },
   headerTitle: {
     fontSize: 28,
@@ -155,6 +156,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     backgroundColor: colors.primary,
     padding: 24,
+    marginTop: 8,
   },
   balanceLabel: {
     fontSize: 14,
@@ -171,6 +173,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.2)',
   },
   balanceItem: {
     flex: 1,
@@ -184,6 +189,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginTop: 4,
+    color: colors.white,
   },
   actionsContainer: {
     flexDirection: 'row',
@@ -194,9 +200,17 @@ const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
     padding: 20,
-    borderRadius: 12,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   actionButtonIcon: {
     fontSize: 32,

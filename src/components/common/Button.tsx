@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, StyleProp } from 'react-native';
+import { StyleProp, ViewStyle } from 'react-native';
+import { Button as PaperButton } from 'react-native-paper';
 import { colors } from '../../constants/colors';
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger';
@@ -21,74 +22,32 @@ export const Button: React.FC<ButtonProps> = ({
   loading = false,
   style 
 }) => {
-  const buttonStyle = [
-    styles.button,
-    variant === 'primary' && styles.primaryButton,
-    variant === 'secondary' && styles.secondaryButton,
-    variant === 'danger' && styles.dangerButton,
-    disabled && styles.disabledButton,
-    style,
-  ];
-
-  const textStyle = [
-    styles.text,
-    variant === 'primary' && styles.primaryText,
-    variant === 'secondary' && styles.secondaryText,
-    variant === 'danger' && styles.dangerText,
-    disabled && styles.disabledText,
-  ];
+  // Mapear variantes a colores
+  const getButtonColor = () => {
+    switch (variant) {
+      case 'primary':
+        return colors.primary;
+      case 'secondary':
+        return colors.secondary;
+      case 'danger':
+        return colors.danger;
+      default:
+        return colors.primary;
+    }
+  };
 
   return (
-    <TouchableOpacity 
-      style={buttonStyle} 
+    <PaperButton
+      mode="contained"
       onPress={onPress}
-      disabled={disabled || loading}
-      activeOpacity={0.7}
+      disabled={disabled}
+      loading={loading}
+      style={style}
+      buttonColor={getButtonColor()}
+      textColor={colors.white}
+      contentStyle={{ paddingVertical: 6 }}
     >
-      {loading ? (
-        <ActivityIndicator color={colors.white} />
-      ) : (
-        <Text style={textStyle}>{title}</Text>
-      )}
-    </TouchableOpacity>
+      {title}
+    </PaperButton>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 8,
-  },
-  primaryButton: {
-    backgroundColor: colors.primary,
-  },
-  secondaryButton: {
-    backgroundColor: colors.secondary,
-  },
-  dangerButton: {
-    backgroundColor: colors.danger,
-  },
-  disabledButton: {
-    backgroundColor: colors.border,
-  },
-  text: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  primaryText: {
-    color: colors.white,
-  },
-  secondaryText: {
-    color: colors.white,
-  },
-  dangerText: {
-    color: colors.white,
-  },
-  disabledText: {
-    color: colors.textLight,
-  },
-});

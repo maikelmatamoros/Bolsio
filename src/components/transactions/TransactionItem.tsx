@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 12,
-    color: colors.textLight,
+    color: colors.textMuted,
   },
   rightSection: {
     alignItems: 'flex-end',
