@@ -69,4 +69,21 @@ npm start
 - `npm run ios` - Abre en simulador iOS (requiere macOS)
 - `npm run web` - Abre versión web
 
+## 📄 Licencia
+
+Este proyecto está licenciado bajo **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)**.
+
+Esto significa que:
+- ✅ Puedes usar, modificar y compartir el código
+- ✅ Debes dar crédito al autor original
+- ❌ **NO puedes usarlo con fines comerciales**
+- ✅ Si modificas el código, debes compartirlo bajo la misma licencia
+
+Para más detalles, consulta el archivo [LICENSE](LICENSE).
+
+## 👨‍💻 Autor
+
+**Maikel Matamoros**
+- GitHub: [@maikelmatamoros](https://github.com/maikelmatamoros)
+
 ---

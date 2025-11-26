@@ -2,6 +2,12 @@
   "name": "moneytrack",
   "version": "1.0.0",
   "main": "index.js",
+  "license": "CC-BY-NC-SA-4.0",
+  "author": "Maikel Matamoros",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maikelmatamoros/MoneyTrack.git"
+  },
   "scripts": {
     "start": "expo start",
     "start-offline": "expo start --offline",
