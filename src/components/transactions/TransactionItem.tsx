@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Card } from '../common/Card';
-import { colors } from '../../constants/colors';
+import { useCategories } from '../../context/CategoryContext';
+import { useSettings } from '../../context/SettingsContext';
+import { lightColors, darkColors } from '../../constants/colors';
 import { formatCurrency, formatRelativeDate } from '../../utils/formatters';
-import { categories } from '../../constants/categories';
 import { ITransaction } from '../../types';
 
 interface TransactionItemProps {
@@ -17,15 +18,62 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
   onPress, 
   onLongPress 
 }) => {
+  const { getAllCategories } = useCategories();
+  const { settings } = useSettings();
+  const colors = settings.theme === 'dark' ? darkColors : lightColors;
+  
   const isIncome = transaction.type === 'income';
   const amountColor = isIncome ? colors.income : colors.expense;
   const sign = isIncome ? '+' : '-';
 
-  // Encontrar la categoría para mostrar el ícono
-  const categoryList = isIncome ? categories.income : categories.expense;
-  const categoryData = categoryList.find(cat => cat.id === transaction.category);
+  // Encontrar la categoría (predefinida o custom)
+  const allCategories = getAllCategories(transaction.type);
+  const categoryData = allCategories.find(cat => cat.id === transaction.category);
   const categoryIcon = categoryData?.icon || '💰';
   const categoryName = categoryData?.name || transaction.category;
+
+  const styles = StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    leftSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    icon: {
+      fontSize: 32,
+      marginRight: 12,
+    },
+    info: {
+      flex: 1,
+    },
+    category: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.onSurface,
+      marginBottom: 2,
+    },
+    description: {
+      fontSize: 14,
+      color: colors.onSurfaceVariant,
+      marginBottom: 2,
+    },
+    date: {
+      fontSize: 12,
+      color: colors.onSurfaceVariant,
+      opacity: 0.7,
+    },
+    rightSection: {
+      alignItems: 'flex-end',
+    },
+    amount: {
+      fontSize: 18,
+      fontWeight: '700',
+    },
+  });
 
   return (
     <TouchableOpacity onPress={onPress} onLongPress={onLongPress}>
@@ -43,7 +91,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
           </View>
           <View style={styles.rightSection}>
             <Text style={[styles.amount, { color: amountColor }]}>
-              {sign} {formatCurrency(transaction.amount)}
+              {sign} {formatCurrency(transaction.amount, settings.currency.symbol)}
             </Text>
           </View>
         </View>
@@ -51,45 +99,3 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  leftSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  icon: {
-    fontSize: 32,
-    marginRight: 12,
-  },
-  info: {
-    flex: 1,
-  },
-  category: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 2,
-  },
-  description: {
-    fontSize: 14,
-    color: colors.textLight,
-    marginBottom: 2,
-  },
-  date: {
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-  rightSection: {
-    alignItems: 'flex-end',
-  },
-  amount: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-});

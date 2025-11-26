@@ -6,6 +6,7 @@ import { AccountProvider } from './src/context/AccountContext';
 import { CategoryProvider } from './src/context/CategoryContext';
 import { SettingsProvider, useSettings } from './src/context/SettingsContext';
 import { HomeScreen } from './src/screens/HomeScreen';
+import { TransactionsScreen } from './src/screens/TransactionsScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { lightColors, darkColors } from './src/constants/colors';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
@@ -73,7 +74,7 @@ const darkTheme = {
 
 // Componente interno que usa los insets
 function AppContent() {
-  const [currentScreen, setCurrentScreen] = useState<'Home' | 'Settings'>('Home');
+  const [currentScreen, setCurrentScreen] = useState<'Home' | 'Transactions' | 'Settings'>('Home');
   const insets = useSafeAreaInsets();
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
@@ -147,7 +148,11 @@ function AppContent() {
     <View style={dynamicStyles.container}>
       {/* Contenido de la pantalla */}
       <View style={dynamicStyles.content}>
-        {currentScreen === 'Home' ? <HomeScreen /> : <SettingsScreen />}
+        {currentScreen === 'Home' && (
+          <HomeScreen onNavigate={(screen) => setCurrentScreen(screen)} />
+        )}
+        {currentScreen === 'Transactions' && <TransactionsScreen />}
+        {currentScreen === 'Settings' && <SettingsScreen />}
       </View>
       
       {/* Bottom Tab Bar personalizada */}
@@ -172,6 +177,29 @@ function AppContent() {
             { color: currentScreen === 'Home' ? colors.primary : colors.textMuted }
           ]}>
             Inicio
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={dynamicStyles.tabButton}
+          onPress={() => setCurrentScreen('Transactions')}
+          activeOpacity={0.7}
+        >
+          <View style={[
+            dynamicStyles.tabIconContainer,
+            currentScreen === 'Transactions' && { backgroundColor: colors.primaryContainer }
+          ]}>
+            <Ionicons
+              name={currentScreen === 'Transactions' ? 'list' : 'list-outline'}
+              size={22}
+              color={currentScreen === 'Transactions' ? colors.primary : colors.textMuted}
+            />
+          </View>
+          <Text style={[
+            dynamicStyles.tabLabel,
+            { color: currentScreen === 'Transactions' ? colors.primary : colors.textMuted }
+          ]}>
+            Transacciones
           </Text>
         </TouchableOpacity>
         

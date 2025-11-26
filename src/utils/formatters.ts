@@ -45,3 +45,50 @@ export const formatRelativeDate = (date: Date | string): string => {
     return formatDate(d);
   }
 };
+
+// Formatear encabezado de fecha para agrupar transacciones
+export const formatDateHeader = (date: Date | string): string => {
+  const d = new Date(date);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (d.toDateString() === today.toDateString()) {
+    return 'Hoy';
+  } else if (d.toDateString() === yesterday.toDateString()) {
+    return 'Ayer';
+  } else {
+    const oneWeekAgo = new Date(today);
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    
+    if (d > oneWeekAgo) {
+      return d.toLocaleDateString('es-ES', { weekday: 'long' });
+    } else {
+      return d.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'long',
+        year: d.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+      });
+    }
+  }
+};
+
+// Agrupar transacciones por fecha
+export const groupTransactionsByDate = (transactions: any[]): { date: string; transactions: any[] }[] => {
+  const groups: { [key: string]: any[] } = {};
+  
+  transactions.forEach(transaction => {
+    const dateKey = new Date(transaction.date).toDateString();
+    if (!groups[dateKey]) {
+      groups[dateKey] = [];
+    }
+    groups[dateKey].push(transaction);
+  });
+
+  return Object.keys(groups)
+    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+    .map(dateKey => ({
+      date: formatDateHeader(new Date(dateKey)),
+      transactions: groups[dateKey]
+    }));
+};

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -12,6 +13,7 @@ import { useTransactions } from '../context/TransactionContext';
 import { useSettings } from '../context/SettingsContext';
 import { Card } from '../components/common/Card';
 import { TransactionItem } from '../components/transactions/TransactionItem';
+import { AddTransactionScreen } from './AddTransactionScreen';
 import { lightColors, darkColors } from '../constants/colors';
 import { formatCurrency } from '../utils/formatters';
 import { TransactionType } from '../types';
@@ -22,9 +24,10 @@ interface NavigationProp {
 
 interface HomeScreenProps {
   navigation?: NavigationProp;
+  onNavigate?: (screen: 'Transactions') => void;
 }
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate }) => {
   const {
     transactions,
     loading,
@@ -35,6 +38,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
 
+  const [addTransactionVisible, setAddTransactionVisible] = useState(false);
+  const [initialTransactionType, setInitialTransactionType] = useState<TransactionType>('expense');
+
   const balance = getBalance();
   const totalIncome = getTotalIncome();
   const totalExpense = getTotalExpense();
@@ -43,6 +49,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const recentTransactions = [...transactions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
+
+  const handleOpenAddTransaction = (type: TransactionType) => {
+    setInitialTransactionType(type);
+    setAddTransactionVisible(true);
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -106,13 +117,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       marginTop: 4,
       color: colors.onPrimaryContainer,
     },
-    actionsContainer: {
+    quickActionsContainer: {
       flexDirection: 'row',
       paddingHorizontal: 16,
       marginTop: 16,
       gap: 12,
     },
-    actionButton: {
+    quickActionButton: {
       flex: 1,
       padding: 16,
       borderRadius: 16,
@@ -127,11 +138,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       shadowRadius: 8,
       elevation: 4,
     },
-    actionButtonIcon: {
+    quickActionIcon: {
       fontSize: 28,
       marginBottom: 6,
     },
-    actionButtonText: {
+    quickActionText: {
       color: colors.white,
       fontSize: 15,
       fontWeight: '600',
@@ -199,21 +210,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           </View>
         </Card>
 
-        {/* Action Buttons */}
-        <View style={styles.actionsContainer}>
+        {/* Quick Actions */}
+        <View style={styles.quickActionsContainer}>
           <TouchableOpacity 
-            style={[styles.actionButton, { backgroundColor: colors.income }]}
-            onPress={() => navigation?.navigate('AddTransaction', { type: 'income' })}
+            style={[styles.quickActionButton, { backgroundColor: colors.income }]}
+            onPress={() => handleOpenAddTransaction('income')}
           >
-            <Text style={styles.actionButtonIcon}>💰</Text>
-            <Text style={styles.actionButtonText}>Ingreso</Text>
+            <Text style={styles.quickActionIcon}>💰</Text>
+            <Text style={styles.quickActionText}>Nuevo Ingreso</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.actionButton, { backgroundColor: colors.expense }]}
-            onPress={() => navigation?.navigate('AddTransaction', { type: 'expense' })}
+            style={[styles.quickActionButton, { backgroundColor: colors.expense }]}
+            onPress={() => handleOpenAddTransaction('expense')}
           >
-            <Text style={styles.actionButtonIcon}>💸</Text>
-            <Text style={styles.actionButtonText}>Gasto</Text>
+            <Text style={styles.quickActionIcon}>💸</Text>
+            <Text style={styles.quickActionText}>Nuevo Gasto</Text>
           </TouchableOpacity>
         </View>
 
@@ -222,7 +233,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <View style={styles.recentHeader}>
             <Text style={styles.sectionTitle}>Transacciones Recientes</Text>
             {transactions.length > 5 && (
-              <TouchableOpacity onPress={() => navigation?.navigate('TransactionsList')}>
+              <TouchableOpacity onPress={() => onNavigate?.('Transactions')}>
                 <Text style={styles.seeAllText}>Ver todas</Text>
               </TouchableOpacity>
             )}
@@ -248,6 +259,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           )}
         </View>
       </ScrollView>
+
+      {/* Modal de agregar transacción */}
+      <Modal
+        visible={addTransactionVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <AddTransactionScreen
+          type={initialTransactionType}
+          onClose={() => setAddTransactionVisible(false)}
+        />
+      </Modal>
     </SafeAreaView>
   );
 };
