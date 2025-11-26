@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Account } from '../models/Account';
 import { IAccount } from '../types';
 
-const STORAGE_KEY = '@MoneyTrack:accounts';
+const STORAGE_KEY = '@Bolsio:accounts';
 
 export const AccountStorageService = {
   // Guardar todas las cuentas

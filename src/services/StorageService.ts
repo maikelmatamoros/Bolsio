@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Transaction } from '../models/Transaction';
 import { ITransaction } from '../types';
 
-const STORAGE_KEY = '@MoneyTrack:transactions';
+const STORAGE_KEY = '@Bolsio:transactions';
 
 export const StorageService = {
   // Guardar todas las transacciones

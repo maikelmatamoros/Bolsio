@@ -1,4 +1,4 @@
-# MoneyTrack 💰
+# Bolsio 💰
 
 Aplicación móvil para el control de finanzas personales desarrollada con **React Native**, **Expo** y **TypeScript**.
 
@@ -20,7 +20,7 @@ El proyecto está completamente escrito en **TypeScript** para:
 ## 📁 Estructura de Carpetas
 
 ```
-MoneyTrack/
+Bolsio/
 ├── src/
 │   ├── components/        # Componentes reutilizables
 │   │   ├── common/       # Componentes comunes (Button, Card)

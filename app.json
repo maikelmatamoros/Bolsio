@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MoneyTrack",
-    "slug": "MoneyTrack",
+    "name": "Bolsio",
+    "slug": "bolsio",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/AppIcon.webp",

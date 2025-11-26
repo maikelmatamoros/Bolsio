@@ -246,7 +246,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate }
       <ScrollView style={styles.scrollView}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>MoneyTrack</Text>
+          <Text style={styles.headerTitle}>Bolsio</Text>
           <Text style={styles.headerSubtitle}>Control de Finanzas</Text>
         </View>
 

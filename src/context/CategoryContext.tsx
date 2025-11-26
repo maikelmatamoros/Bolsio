@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ICategory, TransactionType } from '../types';
 import { categories as defaultCategories } from '../constants/categories';
 
-const STORAGE_KEY = '@MoneyTrack:customCategories';
+const STORAGE_KEY = '@Bolsio:customCategories';
 
 interface CustomCategoriesState {
   income: ICategory[];

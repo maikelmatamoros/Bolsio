@@ -315,7 +315,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
 
         {/* Información de la app */}
         <View style={styles.appInfo}>
-          <Text style={styles.appInfoText}>MoneyTrack v1.0.0</Text>
+          <Text style={styles.appInfoText}>Bolsio v1.0.0</Text>
           <Text style={styles.appInfoText}>Control de Finanzas Personales</Text>
         </View>
       </ScrollView>

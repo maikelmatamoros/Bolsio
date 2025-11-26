@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const SETTINGS_STORAGE_KEY = '@MoneyTrack:settings';
+const SETTINGS_STORAGE_KEY = '@Bolsio:settings';
 
 export interface Currency {
   code: string;
