@@ -17,8 +17,6 @@ El proyecto está completamente escrito en **TypeScript** para:
 - ✅ Código más mantenible y documentado
 - ✅ Refactoring seguro
 
-Ver [TYPESCRIPT.md](./TYPESCRIPT.md) para más detalles sobre el uso de TypeScript en el proyecto.
-
 ## 📁 Estructura de Carpetas
 
 ```
@@ -39,17 +37,6 @@ MoneyTrack/
 ├── App.js               # Punto de entrada
 └── app.json             # Configuración de Expo
 ```
-
-## 🚀 Características
-
-- ✅ Dashboard con balance total
-- ✅ Visualización de ingresos y gastos
-- ✅ Categorización de transacciones
-- ✅ Almacenamiento local con AsyncStorage
-- ✅ Interfaz intuitiva y moderna
-- 🚧 Agregar nuevas transacciones (próximamente)
-- 🚧 Filtros por fecha (próximamente)
-- 🚧 Gráficos estadísticos (próximamente)
 
 ## 📦 Dependencias
 
@@ -81,5 +68,22 @@ npm start
 - `npm run android` - Abre en emulador Android
 - `npm run ios` - Abre en simulador iOS (requiere macOS)
 - `npm run web` - Abre versión web
+
+## 📄 Licencia
+
+Este proyecto está licenciado bajo **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)**.
+
+Esto significa que:
+- ✅ Puedes usar, modificar y compartir el código
+- ✅ Debes dar crédito al autor original
+- ❌ **NO puedes usarlo con fines comerciales**
+- ✅ Si modificas el código, debes compartirlo bajo la misma licencia
+
+Para más detalles, consulta el archivo [LICENSE](LICENSE).
+
+## 👨‍💻 Autor
+
+**Maikel Matamoros**
+- GitHub: [@maikelmatamoros](https://github.com/maikelmatamoros)
 
 ---
