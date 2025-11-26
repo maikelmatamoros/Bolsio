@@ -17,8 +17,6 @@ El proyecto está completamente escrito en **TypeScript** para:
 - ✅ Código más mantenible y documentado
 - ✅ Refactoring seguro
 
-Ver [TYPESCRIPT.md](./TYPESCRIPT.md) para más detalles sobre el uso de TypeScript en el proyecto.
-
 ## 📁 Estructura de Carpetas
 
 ```
@@ -39,17 +37,6 @@ MoneyTrack/
 ├── App.js               # Punto de entrada
 └── app.json             # Configuración de Expo
 ```
-
-## 🚀 Características
-
-- ✅ Dashboard con balance total
-- ✅ Visualización de ingresos y gastos
-- ✅ Categorización de transacciones
-- ✅ Almacenamiento local con AsyncStorage
-- ✅ Interfaz intuitiva y moderna
-- 🚧 Agregar nuevas transacciones (próximamente)
-- 🚧 Filtros por fecha (próximamente)
-- 🚧 Gráficos estadísticos (próximamente)
 
 ## 📦 Dependencias
 
