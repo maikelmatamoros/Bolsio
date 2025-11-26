@@ -15,6 +15,7 @@ import { Card } from '../components/common/Card';
 import { CurrencySelector } from '../components/CurrencySelector';
 import { ThemeSelector } from '../components/ThemeSelector';
 import { AccountFormScreen } from './AccountFormScreen';
+import { CategoriesScreen } from './CategoriesScreen';
 import { lightColors, darkColors } from '../constants/colors';
 import { formatCurrency } from '../utils/formatters';
 import { Modal } from 'react-native';
@@ -31,6 +32,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
   const [themeModalVisible, setThemeModalVisible] = useState(false);
   const [accountFormVisible, setAccountFormVisible] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
+  const [categoriesVisible, setCategoriesVisible] = useState(false);
 
   const handleAddAccount = () => {
     setSelectedAccountId(undefined);
@@ -236,7 +238,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
                   iconColor={colors.textMuted}
                 />
               )}
-              onPress={() => {/* TODO: Navegar a categorías */}}
+              onPress={() => setCategoriesVisible(true)}
             />
           </Card>
         </View>
@@ -340,6 +342,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
           accountId={selectedAccountId}
           onClose={handleCloseAccountForm}
         />
+      </Modal>
+
+      {/* Modal de categorías */}
+      <Modal
+        visible={categoriesVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <CategoriesScreen onClose={() => setCategoriesVisible(false)} />
       </Modal>
     </SafeAreaView>
   );

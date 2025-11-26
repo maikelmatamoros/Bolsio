@@ -3,6 +3,7 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { TransactionProvider } from './src/context/TransactionContext';
 import { AccountProvider } from './src/context/AccountContext';
+import { CategoryProvider } from './src/context/CategoryContext';
 import { SettingsProvider, useSettings } from './src/context/SettingsContext';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
@@ -221,9 +222,11 @@ function ThemedApp() {
   return (
     <PaperProvider theme={theme}>
       <AccountProvider>
-        <TransactionProvider>
-          <AppContent />
-        </TransactionProvider>
+        <CategoryProvider>
+          <TransactionProvider>
+            <AppContent />
+          </TransactionProvider>
+        </CategoryProvider>
       </AccountProvider>
     </PaperProvider>
   );
