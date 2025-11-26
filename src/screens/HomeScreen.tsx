@@ -69,19 +69,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     },
     balanceCard: {
       marginHorizontal: 16,
-      backgroundColor: colors.primary,
+      backgroundColor: colors.primaryContainer,
       padding: 20,
       marginTop: 8,
     },
     balanceLabel: {
       fontSize: 14,
-      color: colors.white,
+      color: colors.onPrimaryContainer,
       opacity: 0.9,
     },
     balanceAmount: {
       fontSize: 32,
       fontWeight: 'bold',
-      color: colors.white,
+      color: colors.onPrimaryContainer,
       marginVertical: 6,
     },
     balanceDetails: {
@@ -90,21 +90,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       marginTop: 12,
       paddingTop: 12,
       borderTopWidth: 1,
-      borderTopColor: 'rgba(255, 255, 255, 0.2)',
+      borderTopColor: settings.theme === 'dark' ? 'rgba(234, 221, 255, 0.2)' : 'rgba(33, 0, 93, 0.2)',
     },
     balanceItem: {
       flex: 1,
     },
     balanceItemLabel: {
       fontSize: 12,
-      color: colors.white,
+      color: colors.onPrimaryContainer,
       opacity: 0.8,
     },
     balanceItemAmount: {
       fontSize: 16,
       fontWeight: '600',
       marginTop: 4,
-      color: colors.white,
+      color: colors.onPrimaryContainer,
     },
     actionsContainer: {
       flexDirection: 'row',

@@ -169,11 +169,11 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({ visible, onDismiss
           ))}
         </View>
 
-        <View style={styles.footer}>
+        {/* <View style={styles.footer}>
           <Text style={[styles.footerNote, { color: colors.textMuted }]}>
             💡 Ahora puedes disfrutar del tema oscuro
           </Text>
-        </View>
+        </View> */}
       </Modal>
     </Portal>
   );
