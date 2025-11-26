@@ -3,6 +3,7 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { PaperProvider, MD3LightTheme } from 'react-native-paper';
 import { TransactionProvider } from './src/context/TransactionContext';
 import { AccountProvider } from './src/context/AccountContext';
+import { SettingsProvider } from './src/context/SettingsContext';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { colors } from './src/constants/colors';
@@ -129,11 +130,13 @@ export default function App(): React.JSX.Element {
     <ErrorBoundary>
       <SafeAreaProvider>
         <PaperProvider theme={theme}>
-          <AccountProvider>
-            <TransactionProvider>
-              <AppContent />
-            </TransactionProvider>
-          </AccountProvider>
+          <SettingsProvider>
+            <AccountProvider>
+              <TransactionProvider>
+                <AppContent />
+              </TransactionProvider>
+            </AccountProvider>
+          </SettingsProvider>
         </PaperProvider>
       </SafeAreaProvider>
     </ErrorBoundary>

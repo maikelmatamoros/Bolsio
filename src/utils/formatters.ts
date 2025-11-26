@@ -1,9 +1,11 @@
 // Formatear cantidad de dinero
-export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: 'MXN',
+export const formatCurrency = (amount: number, currencySymbol: string = '$'): string => {
+  const formatted = new Intl.NumberFormat('es-MX', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount);
+  
+  return `${currencySymbol}${formatted}`;
 };
 
 // Formatear fecha

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { List, Divider, IconButton } from 'react-native-paper';
 import { useAccounts } from '../context/AccountContext';
+import { useSettings } from '../context/SettingsContext';
 import { Card } from '../components/common/Card';
+import { CurrencySelector } from '../components/CurrencySelector';
 import { colors } from '../constants/colors';
 import { formatCurrency } from '../utils/formatters';
 
@@ -20,6 +22,8 @@ interface SettingsScreenProps {
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
   const { accounts, getTotalBalance, loading } = useAccounts();
+  const { settings } = useSettings();
+  const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -54,7 +58,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
                 <React.Fragment key={account.id}>
                   <List.Item
                     title={account.name}
-                    description={formatCurrency(account.balance)}
+                    description={formatCurrency(account.balance, settings.currency.symbol)}
                     left={() => (
                       <View style={[styles.accountIcon, { backgroundColor: account.color }]}>
                         <Text style={styles.accountIconText}>{account.icon}</Text>
@@ -83,7 +87,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
               <View style={styles.totalContent}>
                 <Text style={styles.totalLabel}>Balance Total</Text>
                 <Text style={styles.totalAmount}>
-                  {formatCurrency(getTotalBalance())}
+                  {formatCurrency(getTotalBalance(), settings.currency.symbol)}
                 </Text>
               </View>
             </Card>
@@ -118,7 +122,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
             <List.Item
               key="settings-currency"
               title="Moneda"
-              description="MXN - Peso Mexicano"
+              description={`${settings.currency.code} - ${settings.currency.name}`}
               left={() => <List.Icon icon="currency-usd" color={colors.primary} />}
               right={() => (
                 <IconButton
@@ -127,6 +131,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
                   iconColor={colors.textMuted}
                 />
               )}
+              onPress={() => setCurrencyModalVisible(true)}
             />
             <Divider key="divider-currency" />
             <List.Item
@@ -185,6 +190,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
           <Text style={styles.appInfoText}>Control de Finanzas Personales</Text>
         </View>
       </ScrollView>
+
+      {/* Modal de selección de moneda */}
+      <CurrencySelector
+        visible={currencyModalVisible}
+        onDismiss={() => setCurrencyModalVisible(false)}
+      />
     </SafeAreaView>
   );
 };

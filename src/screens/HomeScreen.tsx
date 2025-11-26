@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useTransactions } from '../context/TransactionContext';
+import { useSettings } from '../context/SettingsContext';
 import { Card } from '../components/common/Card';
 import { TransactionItem } from '../components/transactions/TransactionItem';
 import { colors } from '../constants/colors';
@@ -31,6 +32,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     getTotalIncome,
     getTotalExpense,
   } = useTransactions();
+  const { settings } = useSettings();
 
   const balance = getBalance();
   const totalIncome = getTotalIncome();
@@ -58,19 +60,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             styles.balanceAmount,
             { color: balance >= 0 ? colors.income : colors.expense }
           ]}>
-            {formatCurrency(balance)}
+            {formatCurrency(balance, settings.currency.symbol)}
           </Text>
           <View style={styles.balanceDetails}>
             <View style={styles.balanceItem}>
               <Text style={styles.balanceItemLabel}>Ingresos</Text>
               <Text style={[styles.balanceItemAmount, { color: colors.income }]}>
-                {formatCurrency(totalIncome)}
+                {formatCurrency(totalIncome, settings.currency.symbol)}
               </Text>
             </View>
             <View style={styles.balanceItem}>
               <Text style={styles.balanceItemLabel}>Gastos</Text>
               <Text style={[styles.balanceItemAmount, { color: colors.expense }]}>
-                {formatCurrency(totalExpense)}
+                {formatCurrency(totalExpense, settings.currency.symbol)}
               </Text>
             </View>
           </View>
