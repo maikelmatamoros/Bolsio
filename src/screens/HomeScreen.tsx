@@ -12,7 +12,7 @@ import { useTransactions } from '../context/TransactionContext';
 import { useSettings } from '../context/SettingsContext';
 import { Card } from '../components/common/Card';
 import { TransactionItem } from '../components/transactions/TransactionItem';
-import { colors } from '../constants/colors';
+import { lightColors, darkColors } from '../constants/colors';
 import { formatCurrency } from '../utils/formatters';
 import { TransactionType } from '../types';
 
@@ -33,6 +33,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     getTotalExpense,
   } = useTransactions();
   const { settings } = useSettings();
+  const colors = settings.theme === 'dark' ? darkColors : lightColors;
 
   const balance = getBalance();
   const totalIncome = getTotalIncome();
@@ -42,6 +43,126 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const recentTransactions = [...transactions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    header: {
+      padding: 16,
+      paddingTop: 8,
+      backgroundColor: colors.surface,
+    },
+    headerTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    headerSubtitle: {
+      fontSize: 13,
+      color: colors.textLight,
+      marginTop: 2,
+    },
+    balanceCard: {
+      marginHorizontal: 16,
+      backgroundColor: colors.primary,
+      padding: 20,
+      marginTop: 8,
+    },
+    balanceLabel: {
+      fontSize: 14,
+      color: colors.white,
+      opacity: 0.9,
+    },
+    balanceAmount: {
+      fontSize: 32,
+      fontWeight: 'bold',
+      color: colors.white,
+      marginVertical: 6,
+    },
+    balanceDetails: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 12,
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    balanceItem: {
+      flex: 1,
+    },
+    balanceItemLabel: {
+      fontSize: 12,
+      color: colors.white,
+      opacity: 0.8,
+    },
+    balanceItemAmount: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginTop: 4,
+      color: colors.white,
+    },
+    actionsContainer: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      marginTop: 16,
+      gap: 12,
+    },
+    actionButton: {
+      flex: 1,
+      padding: 16,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    actionButtonIcon: {
+      fontSize: 28,
+      marginBottom: 6,
+    },
+    actionButtonText: {
+      color: colors.white,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+    recentSection: {
+      padding: 16,
+      paddingTop: 12,
+    },
+    recentHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    seeAllText: {
+      fontSize: 14,
+      color: colors.primary,
+      fontWeight: '600',
+    },
+    emptyText: {
+      textAlign: 'center',
+      color: colors.textLight,
+      fontSize: 16,
+      padding: 20,
+    },
+  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -130,123 +251,3 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    padding: 16,
-    paddingTop: 8,
-    backgroundColor: colors.surface,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.text,
-  },
-  headerSubtitle: {
-    fontSize: 13,
-    color: colors.textLight,
-    marginTop: 2,
-  },
-  balanceCard: {
-    marginHorizontal: 16,
-    backgroundColor: colors.primary,
-    padding: 20,
-    marginTop: 8,
-  },
-  balanceLabel: {
-    fontSize: 14,
-    color: colors.white,
-    opacity: 0.9,
-  },
-  balanceAmount: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: colors.white,
-    marginVertical: 6,
-  },
-  balanceDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  balanceItem: {
-    flex: 1,
-  },
-  balanceItemLabel: {
-    fontSize: 12,
-    color: colors.white,
-    opacity: 0.8,
-  },
-  balanceItemAmount: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 4,
-    color: colors.white,
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    marginTop: 16,
-    gap: 12,
-  },
-  actionButton: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  actionButtonIcon: {
-    fontSize: 28,
-    marginBottom: 6,
-  },
-  actionButtonText: {
-    color: colors.white,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  recentSection: {
-    padding: 16,
-    paddingTop: 12,
-  },
-  recentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  seeAllText: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: colors.textLight,
-    fontSize: 16,
-    padding: 20,
-  },
-});

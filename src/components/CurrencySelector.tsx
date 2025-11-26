@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Modal, Portal, IconButton } from 'react-native-paper';
-import { colors } from '../constants/colors';
 import { Currency, CURRENCIES, useSettings } from '../context/SettingsContext';
+import { lightColors, darkColors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 
 interface CurrencySelectorProps {
@@ -12,11 +12,76 @@ interface CurrencySelectorProps {
 
 export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ visible, onDismiss }) => {
   const { settings, updateCurrency } = useSettings();
+  const colors = settings.theme === 'dark' ? darkColors : lightColors;
 
   const handleSelectCurrency = async (currency: Currency) => {
     await updateCurrency(currency);
     onDismiss();
   };
+
+  const styles = StyleSheet.create({
+    modal: {
+      backgroundColor: colors.surface,
+      margin: 20,
+      borderRadius: 20,
+      maxHeight: '80%',
+      overflow: 'hidden',
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.outline,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    list: {
+      maxHeight: 400,
+    },
+    currencyItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.outlineVariant,
+    },
+    currencyItemActive: {
+      backgroundColor: colors.primaryContainer,
+    },
+    currencyInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    currencySymbol: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: colors.primary,
+      width: 50,
+      textAlign: 'center',
+    },
+    currencyText: {
+      marginLeft: 12,
+    },
+    currencyName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    currencyCode: {
+      fontSize: 13,
+      color: colors.textMuted,
+      marginTop: 2,
+    },
+  });
 
   return (
     <Portal>
@@ -64,67 +129,3 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ visible, onD
     </Portal>
   );
 };
-
-const styles = StyleSheet.create({
-  modal: {
-    backgroundColor: colors.surface,
-    margin: 20,
-    borderRadius: 20,
-    maxHeight: '80%',
-    overflow: 'hidden',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.outline,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  list: {
-    maxHeight: 400,
-  },
-  currencyItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.outlineVariant,
-  },
-  currencyItemActive: {
-    backgroundColor: colors.primaryContainer,
-  },
-  currencyInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  currencySymbol: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: colors.primary,
-    width: 50,
-    textAlign: 'center',
-  },
-  currencyText: {
-    marginLeft: 12,
-  },
-  currencyName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  currencyCode: {
-    fontSize: 13,
-    color: colors.textMuted,
-    marginTop: 2,
-  },
-});

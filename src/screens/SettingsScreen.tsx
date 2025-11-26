@@ -13,7 +13,8 @@ import { useAccounts } from '../context/AccountContext';
 import { useSettings } from '../context/SettingsContext';
 import { Card } from '../components/common/Card';
 import { CurrencySelector } from '../components/CurrencySelector';
-import { colors } from '../constants/colors';
+import { ThemeSelector } from '../components/ThemeSelector';
+import { lightColors, darkColors } from '../constants/colors';
 import { formatCurrency } from '../utils/formatters';
 
 interface SettingsScreenProps {
@@ -23,7 +24,113 @@ interface SettingsScreenProps {
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
   const { accounts, getTotalBalance, loading } = useAccounts();
   const { settings } = useSettings();
+  const colors = settings.theme === 'dark' ? darkColors : lightColors;
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
+  const [themeModalVisible, setThemeModalVisible] = useState(false);
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    header: {
+      padding: 16,
+      paddingTop: 8,
+      backgroundColor: colors.surface,
+    },
+    headerTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    headerSubtitle: {
+      fontSize: 13,
+      color: colors.textLight,
+      marginTop: 2,
+    },
+    section: {
+      marginTop: 24,
+      paddingHorizontal: 16,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: 12,
+    },
+    addButton: {
+      margin: 0,
+      padding: 0,
+    },
+    accountsCard: {
+      padding: 0,
+    },
+    accountIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginLeft: 8,
+    },
+    accountIconText: {
+      fontSize: 24,
+    },
+    accountTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    accountBalance: {
+      fontSize: 14,
+      color: colors.textLight,
+      marginTop: 4,
+    },
+    emptyText: {
+      textAlign: 'center',
+      color: colors.textLight,
+      fontSize: 14,
+      padding: 20,
+    },
+    totalCard: {
+      marginTop: 12,
+      backgroundColor: colors.primaryContainer,
+    },
+    totalContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    totalLabel: {
+      fontSize: 14,
+      color: colors.onPrimaryContainer,
+      fontWeight: '500',
+    },
+    totalAmount: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: colors.onPrimaryContainer,
+    },
+    appInfo: {
+      alignItems: 'center',
+      padding: 32,
+      marginTop: 16,
+    },
+    appInfoText: {
+      fontSize: 12,
+      color: colors.textMuted,
+      marginVertical: 2,
+    },
+  });
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -137,7 +244,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
             <List.Item
               key="settings-theme"
               title="Tema"
-              description="Claro"
+              description={settings.theme === 'light' ? 'Claro' : 'Oscuro'}
               left={() => <List.Icon icon="palette-outline" color={colors.primary} />}
               right={() => (
                 <IconButton
@@ -146,6 +253,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
                   iconColor={colors.textMuted}
                 />
               )}
+              onPress={() => setThemeModalVisible(true)}
             />
           </Card>
         </View>
@@ -196,110 +304,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
         visible={currencyModalVisible}
         onDismiss={() => setCurrencyModalVisible(false)}
       />
+
+      {/* Modal de selección de tema */}
+      <ThemeSelector
+        visible={themeModalVisible}
+        onDismiss={() => setThemeModalVisible(false)}
+      />
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    padding: 20,
-    paddingTop: 10,
-    backgroundColor: colors.surface,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: colors.text,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: colors.textLight,
-    marginTop: 4,
-  },
-  section: {
-    marginTop: 24,
-    paddingHorizontal: 16,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 12,
-  },
-  addButton: {
-    margin: 0,
-    padding: 0,
-  },
-  accountsCard: {
-    padding: 0,
-  },
-  accountIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  accountIconText: {
-    fontSize: 24,
-  },
-  accountTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  accountBalance: {
-    fontSize: 14,
-    color: colors.textLight,
-    marginTop: 4,
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: colors.textLight,
-    fontSize: 14,
-    padding: 20,
-  },
-  totalCard: {
-    marginTop: 12,
-    backgroundColor: colors.primaryContainer,
-  },
-  totalContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  totalLabel: {
-    fontSize: 14,
-    color: colors.onPrimaryContainer,
-    fontWeight: '500',
-  },
-  totalAmount: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.onPrimaryContainer,
-  },
-  appInfo: {
-    alignItems: 'center',
-    padding: 32,
-    marginTop: 16,
-  },
-  appInfoText: {
-    fontSize: 12,
-    color: colors.textMuted,
-    marginVertical: 2,
-  },
-});

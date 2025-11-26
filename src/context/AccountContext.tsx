@@ -15,18 +15,6 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
 
   // Cargar cuentas al iniciar
   useEffect(() => {
-    // Limpieza única al montar (solo en desarrollo)
-    const clearDuplicates = async () => {
-      try {
-        await AccountStorageService.clearAll();
-        console.log('[AccountContext] Storage limpiado para evitar duplicados');
-      } catch (error) {
-        console.error('[AccountContext] Error limpiando:', error);
-      }
-    };
-    
-    // Solo ejecutar una vez
-    clearDuplicates();
     loadAccounts();
   }, []);
 
