@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -30,10 +30,11 @@ interface NavigationProp {
 
 interface HomeScreenProps {
   navigation?: NavigationProp;
-  onNavigate?: (screen: 'Transactions') => void;
+  onNavigate?: (screen: 'Home' | 'Transactions' | 'Settings') => void;
+  quickActionsRef?: React.RefObject<any>;
 }
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, quickActionsRef }) => {
   const {
     transactions,
     loading,
@@ -253,31 +254,33 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate }
 
         {/* Balance Card */}
         <Card style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Balance Total</Text>
-          <Text style={[
-            styles.balanceAmount,
-            { color: balance >= 0 ? colors.income : colors.expense }
-          ]}>
-            {formatCurrency(balance, settings.currency.symbol)}
-          </Text>
-          <View style={styles.balanceDetails}>
-            <View style={styles.balanceItem}>
-              <Text style={styles.balanceItemLabel}>Ingresos</Text>
-              <Text style={[styles.balanceItemAmount, { color: colors.income }]}>
-                {formatCurrency(totalIncome, settings.currency.symbol)}
-              </Text>
-            </View>
-            <View style={styles.balanceItem}>
-              <Text style={styles.balanceItemLabel}>Gastos</Text>
-              <Text style={[styles.balanceItemAmount, { color: colors.expense }]}>
-                {formatCurrency(totalExpense, settings.currency.symbol)}
-              </Text>
+          <View>
+            <Text style={styles.balanceLabel}>Balance Total</Text>
+            <Text style={[
+              styles.balanceAmount,
+              { color: balance >= 0 ? colors.income : colors.expense }
+            ]}>
+              {formatCurrency(balance, settings.currency.symbol)}
+            </Text>
+            <View style={styles.balanceDetails}>
+              <View style={styles.balanceItem}>
+                <Text style={styles.balanceItemLabel}>Ingresos</Text>
+                <Text style={[styles.balanceItemAmount, { color: colors.income }]}>
+                  {formatCurrency(totalIncome, settings.currency.symbol)}
+                </Text>
+              </View>
+              <View style={styles.balanceItem}>
+                <Text style={styles.balanceItemLabel}>Gastos</Text>
+                <Text style={[styles.balanceItemAmount, { color: colors.expense }]}>
+                  {formatCurrency(totalExpense, settings.currency.symbol)}
+                </Text>
+              </View>
             </View>
           </View>
         </Card>
 
         {/* Quick Actions */}
-        <View style={styles.quickActionsContainer}>
+        <View style={styles.quickActionsContainer} ref={quickActionsRef} collapsable={false}>
           <TouchableOpacity 
             style={[styles.quickActionButton, { backgroundColor: colors.income }]}
             onPress={() => handleOpenAddTransaction('income')}

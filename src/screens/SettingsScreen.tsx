@@ -13,6 +13,7 @@ import { useAccounts } from '../context/AccountContext';
 import { useTransactions } from '../context/TransactionContext';
 import { useSettings } from '../context/SettingsContext';
 import { isFeatureEnabled, getEnabledFeatures } from '../config/featureFlags';
+import { useTutorial } from '../hooks/useTutorial';
 import { Card } from '../components/common/Card';
 import { Dialog } from '../components/common/Dialog';
 import { Toast } from '../components/common/Toast';
@@ -35,6 +36,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
   const { toast, showToast, hideToast } = useToast();
+  const { resetTutorial } = useTutorial();
   
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const [themeModalVisible, setThemeModalVisible] = useState(false);
@@ -81,6 +83,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
     } catch (error) {
       console.error('Error deleting all data:', error);
       showToast('Error al eliminar los datos', 'error');
+    }
+  };
+
+  const handleResetTutorial = async () => {
+    try {
+      await resetTutorial();
+      showToast('Tutorial reseteado. Se mostrará al volver a Inicio', 'success');
+    } catch (error) {
+      console.error('Error resetting tutorial:', error);
+      showToast('Error al resetear el tutorial', 'error');
     }
   };
 
@@ -349,6 +361,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
                 />
               )}
               onPress={() => setDeleteAllDialogVisible(true)}
+            />
+            <Divider key="divider-delete" />
+            <List.Item
+              key="settings-reset-tutorial"
+              title="Resetear tutorial"
+              description="Ver el tutorial interactivo nuevamente"
+              left={() => <List.Icon icon="help-circle-outline" color={colors.info} />}
+              right={() => (
+                <IconButton
+                  icon="chevron-right"
+                  size={20}
+                  iconColor={colors.textMuted}
+                />
+              )}
+              onPress={handleResetTutorial}
             />
           </Card>
         </View>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { TransactionProvider } from './src/context/TransactionContext';
@@ -8,6 +8,8 @@ import { SettingsProvider, useSettings } from './src/context/SettingsContext';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { TransactionsScreen } from './src/screens/TransactionsScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
+import { InteractiveTutorial, TutorialStep } from './src/components/onboarding/InteractiveTutorial';
+import { useTutorial } from './src/hooks/useTutorial';
 import { lightColors, darkColors } from './src/constants/colors';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { View, TouchableOpacity, Text, StyleSheet, BackHandler } from 'react-native';
@@ -78,6 +80,19 @@ function AppContent() {
   const insets = useSafeAreaInsets();
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
+  const { shouldShowTutorial, completeTutorial, skipTutorial, recheckTutorial } = useTutorial();
+
+  // Refs para el tutorial
+  const quickActionsRef = useRef<any>(null);
+  const transactionsTabRef = useRef<any>(null);
+  const settingsTabRef = useRef<any>(null);
+
+  // Re-chequear tutorial cuando volvemos a Home
+  useEffect(() => {
+    if (currentScreen === 'Home') {
+      recheckTutorial();
+    }
+  }, [currentScreen]);
 
   // Manejar botón de back en Android
   useEffect(() => {
@@ -149,7 +164,10 @@ function AppContent() {
       {/* Contenido de la pantalla */}
       <View style={dynamicStyles.content}>
         {currentScreen === 'Home' && (
-          <HomeScreen onNavigate={(screen) => setCurrentScreen(screen)} />
+          <HomeScreen 
+            onNavigate={(screen) => setCurrentScreen(screen as 'Home' | 'Transactions' | 'Settings')} 
+            quickActionsRef={quickActionsRef}
+          />
         )}
         {currentScreen === 'Transactions' && <TransactionsScreen />}
         {currentScreen === 'Settings' && <SettingsScreen />}
@@ -181,9 +199,11 @@ function AppContent() {
         </TouchableOpacity>
         
         <TouchableOpacity
+          ref={transactionsTabRef}
           style={dynamicStyles.tabButton}
           onPress={() => setCurrentScreen('Transactions')}
           activeOpacity={0.7}
+          collapsable={false}
         >
           <View style={[
             dynamicStyles.tabIconContainer,
@@ -204,9 +224,11 @@ function AppContent() {
         </TouchableOpacity>
         
         <TouchableOpacity
+          ref={settingsTabRef}
           style={dynamicStyles.tabButton}
           onPress={() => setCurrentScreen('Settings')}
           activeOpacity={0.7}
+          collapsable={false}
         >
           <View style={[
             dynamicStyles.tabIconContainer,
@@ -226,6 +248,63 @@ function AppContent() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Tutorial interactivo */}
+      <InteractiveTutorial
+        visible={shouldShowTutorial}
+        steps={[
+          {
+            id: 'welcome',
+            title: '¡Bienvenido a Bolsio! 👋',
+            description: 'Vamos a hacer un tour rápido por las funciones más importantes. ¡Solo tomará 30 segundos!',
+            spotlightType: 'none',
+          },
+          {
+            id: 'quick-actions',
+            title: 'Registra tus Transacciones 💰',
+            description: 'Aquí puedes agregar ingresos y gastos con un solo toque. Esta es la función principal de Bolsio.',
+            targetRef: quickActionsRef,
+            spotlightType: 'rect',
+          },
+          {
+            id: 'transactions-tab',
+            title: 'Pestaña de Transacciones 📋',
+            description: 'Aquí puedes ver todo tu historial completo de ingresos y gastos. ¡Vamos a verla!',
+            targetRef: transactionsTabRef,
+            spotlightType: 'rect',
+            action: () => setCurrentScreen('Transactions'),
+          },
+          {
+            id: 'transactions-screen',
+            title: 'Historial Completo 📊',
+            description: 'Aquí verás todas tus transacciones ordenadas por fecha. Puedes tocar cualquiera para ver detalles, editar o eliminar.',
+            spotlightType: 'none',
+          },
+          {
+            id: 'settings-tab',
+            title: 'Pestaña de Ajustes ⚙️',
+            description: 'Aquí puedes personalizar categorías, cuentas, moneda y más. ¡Vamos a verla!',
+            targetRef: settingsTabRef,
+            spotlightType: 'rect',
+            action: () => setCurrentScreen('Settings'),
+          },
+          {
+            id: 'settings-screen',
+            title: 'Personalización 🎨',
+            description: 'Aquí puedes configurar tus categorías, cuentas, cambiar el tema oscuro/claro, y más opciones.',
+            spotlightType: 'none',
+          },
+          {
+            id: 'finish',
+            title: '¡Todo listo! 🎉',
+            description: '¡Perfecto! Ya conoces Bolsio. ¡Comienza a registrar tus transacciones y toma control de tus finanzas!',
+            spotlightType: 'none',
+            action: () => setCurrentScreen('Home'),
+          },
+        ]}
+        onComplete={completeTutorial}
+        onSkip={skipTutorial}
+      />
     </View>
   );
 }
