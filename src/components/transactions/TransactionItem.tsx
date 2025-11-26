@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Card } from '../common/Card';
 import { useCategories } from '../../context/CategoryContext';
 import { useSettings } from '../../context/SettingsContext';
 import { lightColors, darkColors } from '../../constants/colors';
@@ -37,6 +36,21 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      backgroundColor: colors.surface,
+      marginHorizontal: 16,
+      marginVertical: 6,
+      padding: 16,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.outline,
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
     },
     leftSection: {
       flexDirection: 'row',
@@ -76,26 +90,24 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
   });
 
   return (
-    <TouchableOpacity onPress={onPress} onLongPress={onLongPress}>
-      <Card>
-        <View style={styles.container}>
-          <View style={styles.leftSection}>
-            <Text style={styles.icon}>{categoryIcon}</Text>
-            <View style={styles.info}>
-              <Text style={styles.category}>{categoryName}</Text>
-              <Text style={styles.description} numberOfLines={1}>
-                {transaction.description}
-              </Text>
-              <Text style={styles.date}>{formatRelativeDate(transaction.date)}</Text>
-            </View>
-          </View>
-          <View style={styles.rightSection}>
-            <Text style={[styles.amount, { color: amountColor }]}>
-              {sign} {formatCurrency(transaction.amount, settings.currency.symbol)}
+    <TouchableOpacity onPress={onPress} onLongPress={onLongPress} activeOpacity={0.7}>
+      <View style={styles.container}>
+        <View style={styles.leftSection}>
+          <Text style={styles.icon}>{categoryIcon}</Text>
+          <View style={styles.info}>
+            <Text style={styles.category}>{categoryName}</Text>
+            <Text style={styles.description} numberOfLines={1}>
+              {transaction.description}
             </Text>
+            <Text style={styles.date}>{formatRelativeDate(transaction.date)}</Text>
           </View>
         </View>
-      </Card>
+        <View style={styles.rightSection}>
+          <Text style={[styles.amount, { color: amountColor }]}>
+            {sign} {formatCurrency(transaction.amount, settings.currency.symbol)}
+          </Text>
+        </View>
+      </View>
     </TouchableOpacity>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,20 +21,22 @@ import { AccountSelectorModal } from '../components/AccountSelectorModal';
 import { Toast } from '../components/common/Toast';
 import { useToast } from '../hooks/useToast';
 import { lightColors, darkColors } from '../constants/colors';
-import { TransactionType, ICategory, IAccount } from '../types';
+import { TransactionType, ICategory, IAccount, ITransaction } from '../types';
 import { formatCurrency } from '../utils/formatters';
 import { Ionicons } from '@expo/vector-icons';
 
 interface AddTransactionScreenProps {
   type: TransactionType;
+  transaction?: ITransaction; // Opcional: para modo edición
   onClose: () => void;
 }
 
 export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
   type,
+  transaction,
   onClose,
 }) => {
-  const { addTransaction } = useTransactions();
+  const { addTransaction, updateTransaction } = useTransactions();
   const { accounts, updateAccountBalance } = useAccounts();
   const { getAllCategories } = useCategories();
   const { settings } = useSettings();
@@ -50,6 +52,26 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
 
   const [categorySelectorVisible, setCategorySelectorVisible] = useState(false);
   const [accountSelectorVisible, setAccountSelectorVisible] = useState(false);
+
+  const isEditMode = !!transaction;
+
+  // Cargar datos de la transacción si está en modo edición
+  useEffect(() => {
+    if (transaction) {
+      setAmount(transaction.amount.toString());
+      setDescription(transaction.description);
+      setDate(new Date(transaction.date));
+      
+      // Encontrar categoría
+      const categories = getAllCategories(transaction.type);
+      const cat = categories.find(c => c.id === transaction.category);
+      if (cat) setSelectedCategory(cat);
+      
+      // Encontrar cuenta
+      const acc = accounts.find(a => a.id === transaction.accountId);
+      if (acc) setSelectedAccount(acc);
+    }
+  }, [transaction]);
 
   const handleSave = async () => {
     // Validaciones
@@ -75,23 +97,54 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
     }
 
     try {
-      // Crear transacción
-      const success = await addTransaction({
-        type,
-        amount: amountNum,
-        category: selectedCategory.id,
-        description: description.trim(),
-        date,
-        accountId: selectedAccount.id,
-      });
+      let success = false;
+
+      if (isEditMode && transaction) {
+        // Modo edición: revertir balance anterior y aplicar el nuevo
+        const oldAmount = transaction.amount;
+        const oldAccountId = transaction.accountId;
+        
+        // Revertir balance anterior
+        const oldOperation = transaction.type === 'income' ? 'subtract' : 'add';
+        await updateAccountBalance(oldAccountId, oldAmount, oldOperation);
+        
+        // Actualizar transacción
+        success = await updateTransaction(transaction.id, {
+          amount: amountNum,
+          category: selectedCategory.id,
+          description: description.trim(),
+          date,
+          accountId: selectedAccount.id,
+        });
+        
+        if (success) {
+          // Aplicar nuevo balance
+          const newOperation = type === 'income' ? 'add' : 'subtract';
+          await updateAccountBalance(selectedAccount.id, amountNum, newOperation);
+        }
+      } else {
+        // Modo creación
+        success = await addTransaction({
+          type,
+          amount: amountNum,
+          category: selectedCategory.id,
+          description: description.trim(),
+          date,
+          accountId: selectedAccount.id,
+        });
+
+        if (success) {
+          // Actualizar balance de la cuenta
+          const operation = type === 'income' ? 'add' : 'subtract';
+          await updateAccountBalance(selectedAccount.id, amountNum, operation);
+        }
+      }
 
       if (success) {
-        // Actualizar balance de la cuenta
-        const operation = type === 'income' ? 'add' : 'subtract';
-        await updateAccountBalance(selectedAccount.id, amountNum, operation);
-
         showToast(
-          `${type === 'income' ? 'Ingreso' : 'Gasto'} registrado correctamente`,
+          isEditMode 
+            ? 'Transacción actualizada correctamente'
+            : `${type === 'income' ? 'Ingreso' : 'Gasto'} registrado correctamente`,
           'success'
         );
 
@@ -244,7 +297,10 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>
-          {type === 'income' ? '💰 Nuevo Ingreso' : '💸 Nuevo Gasto'}
+          {isEditMode 
+            ? (type === 'income' ? '💰 Editar Ingreso' : '💸 Editar Gasto')
+            : (type === 'income' ? '💰 Nuevo Ingreso' : '💸 Nuevo Gasto')
+          }
         </Text>
         <IconButton 
           icon="close" 
@@ -395,7 +451,7 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
           onPress={handleSave}
         >
           <Text style={styles.saveButtonText}>
-            Guardar {type === 'income' ? 'Ingreso' : 'Gasto'}
+            {isEditMode ? 'Actualizar' : `Guardar ${type === 'income' ? 'Ingreso' : 'Gasto'}`}
           </Text>
         </TouchableOpacity>
       </ScrollView>

@@ -10,13 +10,18 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useTransactions } from '../context/TransactionContext';
+import { useAccounts } from '../context/AccountContext';
 import { useSettings } from '../context/SettingsContext';
 import { Card } from '../components/common/Card';
+import { Dialog } from '../components/common/Dialog';
 import { TransactionItem } from '../components/transactions/TransactionItem';
+import { TransactionDetailModal } from '../components/transactions/TransactionDetailModal';
 import { AddTransactionScreen } from './AddTransactionScreen';
+import { Toast } from '../components/common/Toast';
+import { useToast } from '../hooks/useToast';
 import { lightColors, darkColors } from '../constants/colors';
 import { formatCurrency } from '../utils/formatters';
-import { TransactionType } from '../types';
+import { TransactionType, ITransaction } from '../types';
 
 interface NavigationProp {
   navigate: (screen: string, params?: { type?: TransactionType }) => void;
@@ -34,12 +39,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate }
     getBalance,
     getTotalIncome,
     getTotalExpense,
+    deleteTransaction,
   } = useTransactions();
+  const { updateAccountBalance } = useAccounts();
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
+  const { toast, showToast, hideToast } = useToast();
 
   const [addTransactionVisible, setAddTransactionVisible] = useState(false);
   const [initialTransactionType, setInitialTransactionType] = useState<TransactionType>('expense');
+  const [editingTransaction, setEditingTransaction] = useState<ITransaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<ITransaction | null>(null);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<ITransaction | null>(null);
 
   const balance = getBalance();
   const totalIncome = getTotalIncome();
@@ -53,6 +66,58 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate }
   const handleOpenAddTransaction = (type: TransactionType) => {
     setInitialTransactionType(type);
     setAddTransactionVisible(true);
+  };
+
+  const handleTransactionPress = (transaction: ITransaction) => {
+    setSelectedTransaction(transaction);
+    setDetailModalVisible(true);
+  };
+
+  const handleEditTransaction = () => {
+    if (selectedTransaction) {
+      setEditingTransaction(selectedTransaction);
+      setInitialTransactionType(selectedTransaction.type);
+      setDetailModalVisible(false);
+      setAddTransactionVisible(true);
+    }
+  };
+
+  const handleDeleteTransaction = () => {
+    if (selectedTransaction) {
+      setTransactionToDelete(selectedTransaction);
+      setDetailModalVisible(false);
+      setDeleteDialogVisible(true);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!transactionToDelete) return;
+
+    try {
+      // Revertir balance de la cuenta
+      const operation = transactionToDelete.type === 'income' ? 'subtract' : 'add';
+      await updateAccountBalance(transactionToDelete.accountId, transactionToDelete.amount, operation);
+
+      // Eliminar transacción
+      const success = await deleteTransaction(transactionToDelete.id);
+
+      if (success) {
+        showToast('Transacción eliminada correctamente', 'success');
+      } else {
+        showToast('Error al eliminar la transacción', 'error');
+      }
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      showToast('Error al eliminar la transacción', 'error');
+    } finally {
+      setDeleteDialogVisible(false);
+      setTransactionToDelete(null);
+    }
+  };
+
+  const handleCloseAddTransaction = () => {
+    setAddTransactionVisible(false);
+    setEditingTransaction(null);
   };
 
   const styles = StyleSheet.create({
@@ -253,7 +318,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate }
               <TransactionItem
                 key={transaction.id}
                 transaction={transaction}
-                onPress={() => {}}
+                onPress={() => handleTransactionPress(transaction)}
               />
             ))
           )}
@@ -265,12 +330,58 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate }
         visible={addTransactionVisible}
         animationType="slide"
         presentationStyle="pageSheet"
+        onRequestClose={handleCloseAddTransaction}
       >
         <AddTransactionScreen
           type={initialTransactionType}
-          onClose={() => setAddTransactionVisible(false)}
+          transaction={editingTransaction || undefined}
+          onClose={handleCloseAddTransaction}
         />
       </Modal>
+
+      {/* Modal de detalle de transacción */}
+      <TransactionDetailModal
+        visible={detailModalVisible}
+        transaction={selectedTransaction}
+        onDismiss={() => setDetailModalVisible(false)}
+        onEdit={handleEditTransaction}
+        onDelete={handleDeleteTransaction}
+      />
+
+      {/* Diálogo de confirmación de eliminación */}
+      <Dialog
+        visible={deleteDialogVisible}
+        title="Eliminar Transacción"
+        message="¿Estás seguro de que deseas eliminar esta transacción? Esta acción no se puede deshacer."
+        type="warning"
+        buttons={[
+          {
+            text: 'Cancelar',
+            style: 'cancel',
+            onPress: () => {
+              setDeleteDialogVisible(false);
+              setTransactionToDelete(null);
+            },
+          },
+          {
+            text: 'Eliminar',
+            style: 'destructive',
+            onPress: confirmDelete,
+          },
+        ]}
+        onDismiss={() => {
+          setDeleteDialogVisible(false);
+          setTransactionToDelete(null);
+        }}
+      />
+
+      {/* Toast */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
     </SafeAreaView>
   );
 };
