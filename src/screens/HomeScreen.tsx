@@ -12,6 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useTransactions } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
 import { useSettings } from '../context/SettingsContext';
+import { isFeatureEnabled } from '../config/featureFlags';
 import { Card } from '../components/common/Card';
 import { Dialog } from '../components/common/Dialog';
 import { TransactionItem } from '../components/transactions/TransactionItem';
@@ -74,7 +75,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate }
   };
 
   const handleEditTransaction = () => {
-    if (selectedTransaction) {
+    if (selectedTransaction && isFeatureEnabled('enableTransactionEdit')) {
       setEditingTransaction(selectedTransaction);
       setInitialTransactionType(selectedTransaction.type);
       setDetailModalVisible(false);
@@ -83,7 +84,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate }
   };
 
   const handleDeleteTransaction = () => {
-    if (selectedTransaction) {
+    if (selectedTransaction && isFeatureEnabled('enableTransactionDelete')) {
       setTransactionToDelete(selectedTransaction);
       setDetailModalVisible(false);
       setDeleteDialogVisible(true);
@@ -344,8 +345,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate }
         visible={detailModalVisible}
         transaction={selectedTransaction}
         onDismiss={() => setDetailModalVisible(false)}
-        onEdit={handleEditTransaction}
-        onDelete={handleDeleteTransaction}
+        onEdit={isFeatureEnabled('enableTransactionEdit') ? handleEditTransaction : undefined}
+        onDelete={isFeatureEnabled('enableTransactionDelete') ? handleDeleteTransaction : undefined}
       />
 
       {/* Diálogo de confirmación de eliminación */}

@@ -95,6 +95,7 @@ export interface AccountContextType {
   updateAccount: (id: string, updatedData: Partial<IAccount>) => Promise<boolean>;
   updateAccountBalance: (id: string, amount: number, operation: 'add' | 'subtract') => Promise<boolean>;
   loadAccounts: () => Promise<void>;
+  clearAllAccounts: () => Promise<void>;
   getAccountById: (id: string) => IAccount | undefined;
   getTotalBalance: () => number;
 }

@@ -11,6 +11,7 @@ import { IconButton } from 'react-native-paper';
 import { useCategories } from '../../context/CategoryContext';
 import { useAccounts } from '../../context/AccountContext';
 import { useSettings } from '../../context/SettingsContext';
+import { isFeatureEnabled } from '../../config/featureFlags';
 import { lightColors, darkColors } from '../../constants/colors';
 import { formatCurrency } from '../../utils/formatters';
 import { ITransaction } from '../../types';
@@ -305,9 +306,9 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           </ScrollView>
 
           {/* Actions */}
-          {(onEdit || onDelete) && (
+          {((onEdit && isFeatureEnabled('enableTransactionEdit')) || (onDelete && isFeatureEnabled('enableTransactionDelete'))) && (
             <View style={styles.actionsContainer}>
-              {onEdit && (
+              {onEdit && isFeatureEnabled('enableTransactionEdit') && (
                 <TouchableOpacity
                   style={[styles.actionButton, styles.editButton]}
                   onPress={onEdit}
@@ -319,7 +320,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                   </Text>
                 </TouchableOpacity>
               )}
-              {onDelete && (
+              {onDelete && isFeatureEnabled('enableTransactionDelete') && (
                 <TouchableOpacity
                   style={[styles.actionButton, styles.deleteButton]}
                   onPress={onDelete}

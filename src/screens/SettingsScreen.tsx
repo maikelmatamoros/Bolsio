@@ -10,8 +10,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { List, Divider, IconButton } from 'react-native-paper';
 import { useAccounts } from '../context/AccountContext';
+import { useTransactions } from '../context/TransactionContext';
 import { useSettings } from '../context/SettingsContext';
+import { isFeatureEnabled, getEnabledFeatures } from '../config/featureFlags';
 import { Card } from '../components/common/Card';
+import { Dialog } from '../components/common/Dialog';
+import { Toast } from '../components/common/Toast';
+import { useToast } from '../hooks/useToast';
 import { CurrencySelector } from '../components/CurrencySelector';
 import { ThemeSelector } from '../components/ThemeSelector';
 import { AccountFormScreen } from './AccountFormScreen';
@@ -25,14 +30,18 @@ interface SettingsScreenProps {
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
-  const { accounts, getTotalBalance, loading } = useAccounts();
+  const { accounts, getTotalBalance, loading, clearAllAccounts } = useAccounts();
+  const { transactions, loadTransactions } = useTransactions();
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
+  const { toast, showToast, hideToast } = useToast();
+  
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const [themeModalVisible, setThemeModalVisible] = useState(false);
   const [accountFormVisible, setAccountFormVisible] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
   const [categoriesVisible, setCategoriesVisible] = useState(false);
+  const [deleteAllDialogVisible, setDeleteAllDialogVisible] = useState(false);
 
   const handleAddAccount = () => {
     setSelectedAccountId(undefined);
@@ -47,6 +56,32 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
   const handleCloseAccountForm = () => {
     setAccountFormVisible(false);
     setSelectedAccountId(undefined);
+  };
+
+  const handleDeleteAll = async () => {
+    try {
+      // Importar AsyncStorage para borrar todo
+      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+      
+      // Borrar todas las claves de Bolsio
+      await AsyncStorage.multiRemove([
+        '@Bolsio:transactions',
+        '@Bolsio:accounts',
+        '@Bolsio:customCategories',
+        // Mantener configuraciones
+        // '@Bolsio:settings',
+      ]);
+
+      // Recargar datos
+      await loadTransactions();
+      await clearAllAccounts();
+
+      showToast('Todos los datos han sido eliminados', 'success');
+      setDeleteAllDialogVisible(false);
+    } catch (error) {
+      console.error('Error deleting all data:', error);
+      showToast('Error al eliminar los datos', 'error');
+    }
   };
 
   const styles = StyleSheet.create({
@@ -283,20 +318,24 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Datos</Text>
           <Card>
-            <List.Item
-              key="settings-export"
-              title="Exportar datos"
-              description="Descarga tus transacciones"
-              left={() => <List.Icon icon="download-outline" color={colors.info} />}
-              right={() => (
-                <IconButton
-                  icon="chevron-right"
-                  size={20}
-                  iconColor={colors.textMuted}
+            {isFeatureEnabled('enableExportData') && (
+              <>
+                <List.Item
+                  key="settings-export"
+                  title="Exportar datos"
+                  description="Descarga tus transacciones"
+                  left={() => <List.Icon icon="download-outline" color={colors.info} />}
+                  right={() => (
+                    <IconButton
+                      icon="chevron-right"
+                      size={20}
+                      iconColor={colors.textMuted}
+                    />
+                  )}
                 />
-              )}
-            />
-            <Divider key="divider-export" />
+                <Divider key="divider-export" />
+              </>
+            )}
             <List.Item
               key="settings-delete"
               title="Borrar todo"
@@ -309,6 +348,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
                   iconColor={colors.textMuted}
                 />
               )}
+              onPress={() => setDeleteAllDialogVisible(true)}
             />
           </Card>
         </View>
@@ -352,6 +392,35 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
       >
         <CategoriesScreen onClose={() => setCategoriesVisible(false)} />
       </Modal>
+
+      {/* Diálogo de confirmación para borrar todo */}
+      <Dialog
+        visible={deleteAllDialogVisible}
+        title="¿Borrar todos los datos?"
+        message={`Esta acción eliminará:\n\n• ${transactions.length} transacciones\n• ${accounts.length} cuentas\n• Todas las categorías personalizadas\n\nEsta acción NO se puede deshacer.`}
+        type="error"
+        buttons={[
+          {
+            text: 'Cancelar',
+            style: 'cancel',
+            onPress: () => setDeleteAllDialogVisible(false),
+          },
+          {
+            text: 'Borrar Todo',
+            style: 'destructive',
+            onPress: handleDeleteAll,
+          },
+        ]}
+        onDismiss={() => setDeleteAllDialogVisible(false)}
+      />
+
+      {/* Toast */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
     </SafeAreaView>
   );
 };

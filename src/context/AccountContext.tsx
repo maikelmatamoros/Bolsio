@@ -100,6 +100,12 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
     }
   };
 
+  // Limpiar todas las cuentas
+  const clearAllAccounts = async (): Promise<void> => {
+    setAccounts([]);
+    await loadAccounts(); // Recargar las cuentas por defecto
+  };
+
   const value: AccountContextType = {
     accounts,
     loading,
@@ -108,6 +114,7 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
     updateAccount,
     updateAccountBalance,
     loadAccounts,
+    clearAllAccounts,
     getAccountById,
     getTotalBalance,
   };

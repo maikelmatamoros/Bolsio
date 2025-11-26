@@ -13,6 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useTransactions } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
 import { useSettings } from '../context/SettingsContext';
+import { isFeatureEnabled } from '../config/featureFlags';
 import { TransactionItem } from '../components/transactions/TransactionItem';
 import { TransactionDetailModal } from '../components/transactions/TransactionDetailModal';
 import { AddTransactionScreen } from './AddTransactionScreen';
@@ -69,7 +70,7 @@ export const TransactionsScreen: React.FC = () => {
   };
 
   const handleEditTransaction = () => {
-    if (selectedTransaction) {
+    if (selectedTransaction && isFeatureEnabled('enableTransactionEdit')) {
       setEditingTransaction(selectedTransaction);
       setDetailModalVisible(false);
       setAddTransactionVisible(true);
@@ -77,7 +78,7 @@ export const TransactionsScreen: React.FC = () => {
   };
 
   const handleDeleteTransaction = () => {
-    if (selectedTransaction) {
+    if (selectedTransaction && isFeatureEnabled('enableTransactionDelete')) {
       setTransactionToDelete(selectedTransaction);
       setDetailModalVisible(false);
       setDeleteDialogVisible(true);
@@ -374,8 +375,8 @@ export const TransactionsScreen: React.FC = () => {
         visible={detailModalVisible}
         transaction={selectedTransaction}
         onDismiss={() => setDetailModalVisible(false)}
-        onEdit={handleEditTransaction}
-        onDelete={handleDeleteTransaction}
+        onEdit={isFeatureEnabled('enableTransactionEdit') ? handleEditTransaction : undefined}
+        onDelete={isFeatureEnabled('enableTransactionDelete') ? handleDeleteTransaction : undefined}
       />
 
       {/* Edit Transaction Modal */}
