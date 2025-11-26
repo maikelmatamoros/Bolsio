@@ -291,7 +291,7 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar style={settings.theme === 'dark' ? 'light' : 'dark'} />
 
       {/* Header */}

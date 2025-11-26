@@ -7,6 +7,7 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconButton } from 'react-native-paper';
 import { useCategories } from '../../context/CategoryContext';
 import { useAccounts } from '../../context/AccountContext';
@@ -205,7 +206,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           activeOpacity={1} 
           onPress={onDismiss}
         />
-        <View style={styles.modal}>
+        <SafeAreaView style={styles.modal} edges={['bottom']}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Detalle de Transacción</Text>
@@ -334,7 +335,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
               )}
             </View>
           )}
-        </View>
+        </SafeAreaView>
       </View>
     </Modal>
   );

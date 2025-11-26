@@ -4,11 +4,11 @@
     "slug": "bolsio",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/AppIcon.webp",
+    "icon": "./assets/appIcon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/AppIcon.webp",
+      "image": "./assets/appIcon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,10 +17,10 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/AppIcon.webp",
+        "foregroundImage": "./assets/appIcon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.mmatamoros.bolsio"
     },
     "web": {
       "favicon": "./assets/favicon.png"
