@@ -14,8 +14,10 @@ import { useSettings } from '../context/SettingsContext';
 import { Card } from '../components/common/Card';
 import { CurrencySelector } from '../components/CurrencySelector';
 import { ThemeSelector } from '../components/ThemeSelector';
+import { AccountFormScreen } from './AccountFormScreen';
 import { lightColors, darkColors } from '../constants/colors';
 import { formatCurrency } from '../utils/formatters';
+import { Modal } from 'react-native';
 
 interface SettingsScreenProps {
   navigation?: any;
@@ -27,6 +29,23 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const [themeModalVisible, setThemeModalVisible] = useState(false);
+  const [accountFormVisible, setAccountFormVisible] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
+
+  const handleAddAccount = () => {
+    setSelectedAccountId(undefined);
+    setAccountFormVisible(true);
+  };
+
+  const handleEditAccount = (accountId: string) => {
+    setSelectedAccountId(accountId);
+    setAccountFormVisible(true);
+  };
+
+  const handleCloseAccountForm = () => {
+    setAccountFormVisible(false);
+    setSelectedAccountId(undefined);
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -149,7 +168,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
             <Text style={styles.sectionTitle}>Cuentas / Sobres</Text>
             <TouchableOpacity 
               style={styles.addButton}
-              onPress={() => {/* TODO: Navegar a agregar cuenta */}}
+              onPress={handleAddAccount}
             >
               <IconButton icon="plus" size={20} iconColor={colors.primary} />
             </TouchableOpacity>
@@ -178,7 +197,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
                         iconColor={colors.textMuted}
                       />
                     )}
-                    onPress={() => {/* TODO: Editar cuenta */}}
+                    onPress={() => handleEditAccount(account.id)}
                     titleStyle={styles.accountTitle}
                     descriptionStyle={styles.accountBalance}
                   />
@@ -310,6 +329,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
         visible={themeModalVisible}
         onDismiss={() => setThemeModalVisible(false)}
       />
+
+      {/* Modal de formulario de cuenta */}
+      <Modal
+        visible={accountFormVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <AccountFormScreen
+          accountId={selectedAccountId}
+          onClose={handleCloseAccountForm}
+        />
+      </Modal>
     </SafeAreaView>
   );
 };
