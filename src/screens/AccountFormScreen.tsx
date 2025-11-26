@@ -17,6 +17,7 @@ import { Toast } from '../components/common/Toast';
 import { Dialog } from '../components/common/Dialog';
 import { useToast } from '../hooks/useToast';
 import { useDialog } from '../hooks/useDialog';
+import { useCurrencyInput } from '../hooks/useCurrencyInput';
 import { lightColors, darkColors } from '../constants/colors';
 import { AccountType, IAccount } from '../types';
 import { formatCurrency } from '../utils/formatters';
@@ -51,7 +52,7 @@ export const AccountFormScreen: React.FC<AccountFormScreenProps> = ({ accountId,
   
   const [name, setName] = useState(existingAccount?.name || '');
   const [type, setType] = useState<AccountType>(existingAccount?.type || 'cash');
-  const [balance, setBalance] = useState(existingAccount?.balance.toString() || '0');
+  const balanceInput = useCurrencyInput(existingAccount?.balance || 0);
   const [icon, setIcon] = useState(existingAccount?.icon || '💵');
   const [color, setColor] = useState(existingAccount?.color || '#4CAF50');
 
@@ -64,16 +65,10 @@ export const AccountFormScreen: React.FC<AccountFormScreenProps> = ({ accountId,
       return;
     }
 
-    const balanceNum = parseFloat(balance);
-    if (isNaN(balanceNum)) {
-      showToast('El balance debe ser un número válido', 'error');
-      return;
-    }
-
     const accountData: Partial<IAccount> = {
       name: name.trim(),
       type,
-      balance: balanceNum,
+      balance: balanceInput.numericValue,
       icon,
       color,
       isActive: true,
@@ -314,7 +309,7 @@ export const AccountFormScreen: React.FC<AccountFormScreenProps> = ({ accountId,
                 {name || 'Nombre de la cuenta'}
               </Text>
               <Text style={[styles.previewBalance, { color: colors.white, opacity: 0.9 }]}>
-                {formatCurrency(parseFloat(balance) || 0, settings.currency.symbol)}
+                {formatCurrency(balanceInput.numericValue, settings.currency.symbol)}
               </Text>
             </View>
           </View>
@@ -336,8 +331,8 @@ export const AccountFormScreen: React.FC<AccountFormScreenProps> = ({ accountId,
             <Text style={styles.label}>Balance Inicial</Text>
             <TextInput
               style={styles.input}
-              value={balance}
-              onChangeText={setBalance}
+              value={balanceInput.displayValue}
+              onChangeText={balanceInput.handleChange}
               placeholder="0.00"
               placeholderTextColor={colors.textMuted}
               keyboardType="decimal-pad"

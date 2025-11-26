@@ -20,6 +20,7 @@ import { CategorySelectorModal } from '../components/CategorySelectorModal';
 import { AccountSelectorModal } from '../components/AccountSelectorModal';
 import { Toast } from '../components/common/Toast';
 import { useToast } from '../hooks/useToast';
+import { useCurrencyInput } from '../hooks/useCurrencyInput';
 import { lightColors, darkColors } from '../constants/colors';
 import { TransactionType, ICategory, IAccount, ITransaction } from '../types';
 import { formatCurrency } from '../utils/formatters';
@@ -43,7 +44,7 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
   const { toast, showToast, hideToast } = useToast();
 
-  const [amount, setAmount] = useState('');
+  const amountInput = useCurrencyInput(0);
   const [selectedCategory, setSelectedCategory] = useState<ICategory | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<IAccount | null>(null);
   const [description, setDescription] = useState('');
@@ -58,7 +59,7 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
   // Cargar datos de la transacción si está en modo edición
   useEffect(() => {
     if (transaction) {
-      setAmount(transaction.amount.toString());
+      amountInput.setValue(transaction.amount);
       setDescription(transaction.description);
       setDate(new Date(transaction.date));
       
@@ -75,8 +76,7 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
 
   const handleSave = async () => {
     // Validaciones
-    const amountNum = parseFloat(amount);
-    if (!amount || isNaN(amountNum) || amountNum <= 0) {
+    if (amountInput.numericValue <= 0) {
       showToast('Ingresa un monto válido mayor a 0', 'error');
       return;
     }
@@ -110,7 +110,7 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
         
         // Actualizar transacción
         success = await updateTransaction(transaction.id, {
-          amount: amountNum,
+          amount: amountInput.numericValue,
           category: selectedCategory.id,
           description: description.trim(),
           date,
@@ -120,13 +120,13 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
         if (success) {
           // Aplicar nuevo balance
           const newOperation = type === 'income' ? 'add' : 'subtract';
-          await updateAccountBalance(selectedAccount.id, amountNum, newOperation);
+          await updateAccountBalance(selectedAccount.id, amountInput.numericValue, newOperation);
         }
       } else {
         // Modo creación
         success = await addTransaction({
           type,
-          amount: amountNum,
+          amount: amountInput.numericValue,
           category: selectedCategory.id,
           description: description.trim(),
           date,
@@ -136,7 +136,7 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
         if (success) {
           // Actualizar balance de la cuenta
           const operation = type === 'income' ? 'add' : 'subtract';
-          await updateAccountBalance(selectedAccount.id, amountNum, operation);
+          await updateAccountBalance(selectedAccount.id, amountInput.numericValue, operation);
         }
       }
 
@@ -320,12 +320,11 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
             </Text>
             <TextInput
               style={styles.amountInput}
-              value={amount}
-              onChangeText={setAmount}
+              value={amountInput.displayValue}
+              onChangeText={amountInput.handleChange}
               placeholder="0.00"
               placeholderTextColor="rgba(255, 255, 255, 0.6)"
               keyboardType="decimal-pad"
-              maxLength={10}
             />
           </View>
         </View>
