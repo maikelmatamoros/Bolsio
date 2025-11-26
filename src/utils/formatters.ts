@@ -92,3 +92,11 @@ export const groupTransactionsByDate = (transactions: any[]): { date: string; tr
       transactions: groups[dateKey]
     }));
 };
+
+// Formatear mes y año
+export const formatMonthYear = (date: Date): string => {
+  return date.toLocaleDateString('es-MX', {
+    month: 'long',
+    year: 'numeric',
+  });
+};

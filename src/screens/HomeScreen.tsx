@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ import { useToast } from '../hooks/useToast';
 import { lightColors, darkColors } from '../constants/colors';
 import { formatCurrency } from '../utils/formatters';
 import { TransactionType, ITransaction } from '../types';
+import { Ionicons } from '@expo/vector-icons';
 
 interface NavigationProp {
   navigate: (screen: string, params?: { type?: TransactionType }) => void;
@@ -48,6 +49,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
   const { toast, showToast, hideToast } = useToast();
 
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [addTransactionVisible, setAddTransactionVisible] = useState(false);
   const [initialTransactionType, setInitialTransactionType] = useState<TransactionType>('expense');
   const [editingTransaction, setEditingTransaction] = useState<ITransaction | null>(null);
@@ -57,8 +59,27 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
   const [transactionToDelete, setTransactionToDelete] = useState<ITransaction | null>(null);
 
   const balance = getBalance();
-  const totalIncome = getTotalIncome();
-  const totalExpense = getTotalExpense();
+  
+  // Calcular ingresos y gastos del mes seleccionado
+  const monthlyStats = useMemo(() => {
+    const year = selectedMonth.getFullYear();
+    const month = selectedMonth.getMonth();
+    
+    const monthTransactions = transactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return transactionDate.getFullYear() === year && transactionDate.getMonth() === month;
+    });
+
+    const income = monthTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    const expense = monthTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    return { income, expense };
+  }, [transactions, selectedMonth]);
 
   // Obtener las últimas 5 transacciones
   const recentTransactions = [...transactions]
@@ -162,6 +183,22 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
       color: colors.onPrimaryContainer,
       marginVertical: 6,
     },
+    monthSelector: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12,
+      marginTop: 8,
+      paddingVertical: 8,
+    },
+    monthText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.onPrimaryContainer,
+      textTransform: 'capitalize',
+      minWidth: 150,
+      textAlign: 'center',
+    },
     balanceDetails: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -262,17 +299,51 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
             ]}>
               {formatCurrency(balance, settings.currency.symbol)}
             </Text>
+            
+            {/* Month Selector */}
+            <View style={styles.monthSelector}>
+              <TouchableOpacity
+                onPress={() => {
+                  const newMonth = new Date(selectedMonth);
+                  newMonth.setMonth(newMonth.getMonth() - 1);
+                  setSelectedMonth(newMonth);
+                }}
+              >
+                <Ionicons name="chevron-back" size={20} color={colors.primary} />
+              </TouchableOpacity>
+              <Text style={styles.monthText}>
+                {selectedMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  const newMonth = new Date(selectedMonth);
+                  newMonth.setMonth(newMonth.getMonth() + 1);
+                  setSelectedMonth(newMonth);
+                }}
+                disabled={selectedMonth.getMonth() === new Date().getMonth() && selectedMonth.getFullYear() === new Date().getFullYear()}
+              >
+                <Ionicons 
+                  name="chevron-forward" 
+                  size={20} 
+                  color={selectedMonth.getMonth() === new Date().getMonth() && selectedMonth.getFullYear() === new Date().getFullYear() 
+                    ? colors.onSurfaceVariant 
+                    : colors.primary
+                  } 
+                />
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.balanceDetails}>
               <View style={styles.balanceItem}>
                 <Text style={styles.balanceItemLabel}>Ingresos</Text>
                 <Text style={[styles.balanceItemAmount, { color: colors.income }]}>
-                  {formatCurrency(totalIncome, settings.currency.symbol)}
+                  {formatCurrency(monthlyStats.income, settings.currency.symbol)}
                 </Text>
               </View>
               <View style={styles.balanceItem}>
                 <Text style={styles.balanceItemLabel}>Gastos</Text>
                 <Text style={[styles.balanceItemAmount, { color: colors.expense }]}>
-                  {formatCurrency(totalExpense, settings.currency.symbol)}
+                  {formatCurrency(monthlyStats.expense, settings.currency.symbol)}
                 </Text>
               </View>
             </View>
