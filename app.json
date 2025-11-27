@@ -16,10 +16,7 @@
       "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/appIcon.png",
-        "backgroundColor": "#ffffff"
-      },
+      "icon": "./assets/appIcon.png",
       "package": "com.mmatamoros.bolsio"
     },
     "web": {
