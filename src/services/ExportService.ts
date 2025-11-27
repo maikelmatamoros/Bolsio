@@ -1,5 +1,6 @@
-import { Paths, File } from 'expo-file-system';
+import { Paths, File, Directory } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import * as Print from 'expo-print';
 import { Platform } from 'react-native';
 import { ITransaction } from '../types';
 import { formatCurrency, formatDate } from '../utils/formatters';
@@ -64,21 +65,37 @@ export class ExportService {
         periodBalance,
         currencySymbol,
         transactionCount: filteredTransactions.length,
+        transactions: filteredTransactions,
       });
 
-      // Crear archivo HTML temporal
-      const fileName = `Bolsio_Reporte_${this.getMonthYear(startMonth)}_${this.getMonthYear(endMonth)}.html`;
-      const file = new File(Paths.cache, fileName);
-
-      await file.write(html);
-
-      // Compartir archivo
+      // Generar PDF desde HTML usando expo-print
+      const { uri } = await Print.printToFileAsync({ 
+        html,
+        width: 612,
+        height: 792,
+      });
+      
+      // Renombrar archivo con nombre descriptivo
+      const fileName = `Bolsio_Reporte_${this.getMonthYear(startMonth)}_${this.getMonthYear(endMonth)}.pdf`;
+      const newUri = `${Paths.cache.uri}/${fileName}`;
+      
+      // Eliminar archivo anterior si existe
+      const newFile = new File(newUri);
+      if (newFile.exists) {
+        await newFile.delete();
+      }
+      
+      // Mover/renombrar el archivo
+      const file = new File(uri);
+      await file.move(newFile);
+      
+      // Compartir PDF con el nombre correcto
       const canShare = await Sharing.isAvailableAsync();
       if (canShare) {
-        await Sharing.shareAsync(file.uri, {
-          mimeType: 'text/html',
+        await Sharing.shareAsync(newUri, {
+          mimeType: 'application/pdf',
           dialogTitle: 'Exportar Reporte Bolsio',
-          UTI: 'public.html',
+          UTI: 'com.adobe.pdf',
         });
         return true;
       } else {
@@ -145,6 +162,7 @@ export class ExportService {
     periodBalance: number;
     currencySymbol: string;
     transactionCount: number;
+    transactions: ITransaction[];
   }): string {
     const {
       totalBalance,
@@ -156,6 +174,7 @@ export class ExportService {
       periodBalance,
       currencySymbol,
       transactionCount,
+      transactions,
     } = params;
 
     const monthlyRows = monthlyData
@@ -171,6 +190,38 @@ export class ExportService {
           </td>
           <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; font-weight: bold; text-align: right;">
             ${formatCurrency(m.balance, currencySymbol)}
+          </td>
+        </tr>
+      `
+      )
+      .join('');
+
+    // Generar filas de transacciones (ordenadas por fecha)
+    const sortedTransactions = transactions
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    // Limitar transacciones para evitar que el PDF sea muy grande
+    const maxTransactions = 100;
+    const displayedTransactions = sortedTransactions.slice(0, maxTransactions);
+    const hasMore = sortedTransactions.length > maxTransactions;
+    
+    const transactionRows = displayedTransactions
+      .map(
+        t => `
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-size: 13px;">
+            ${new Date(t.date).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
+          </td>
+          <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-size: 13px;">
+            ${t.description}
+          </td>
+          <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 13px;">
+            <span style="background: ${t.type === 'income' ? '#E8F5E9' : '#FFEBEE'}; color: ${t.type === 'income' ? '#4CAF50' : '#F44336'}; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 600;">
+              ${t.type === 'income' ? 'Ingreso' : 'Gasto'}
+            </span>
+          </td>
+          <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; text-align: right; font-weight: 600; color: ${t.type === 'income' ? '#4CAF50' : '#F44336'}; font-size: 13px;">
+            ${formatCurrency(t.amount, currencySymbol)}
           </td>
         </tr>
       `
@@ -363,6 +414,23 @@ export class ExportService {
         </thead>
         <tbody>
           ${monthlyRows}
+        </tbody>
+      </table>
+
+      <!-- Detalle de Transacciones -->
+      <h2 class="section-title" style="margin-top: 40px;">Detalle de Transacciones</h2>
+      ${hasMore ? `<p style="color: #666; font-size: 14px; margin-bottom: 10px;">Mostrando las ${maxTransactions} transacciones más recientes de ${sortedTransactions.length} totales</p>` : ''}
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Descripción</th>
+            <th style="text-align: center;">Tipo</th>
+            <th style="text-align: right;">Monto</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${transactionRows}
         </tbody>
       </table>
 
