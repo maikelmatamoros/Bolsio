@@ -22,6 +22,7 @@ import { CurrencySelector } from '../components/CurrencySelector';
 import { ThemeSelector } from '../components/ThemeSelector';
 import { AccountFormScreen } from './AccountFormScreen';
 import { CategoriesScreen } from './CategoriesScreen';
+import { ExportScreen } from './ExportScreen';
 import { lightColors, darkColors } from '../constants/colors';
 import { formatCurrency } from '../utils/formatters';
 import { Modal } from 'react-native';
@@ -43,6 +44,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
   const [accountFormVisible, setAccountFormVisible] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>();
   const [categoriesVisible, setCategoriesVisible] = useState(false);
+  const [exportVisible, setExportVisible] = useState(false);
   const [deleteAllDialogVisible, setDeleteAllDialogVisible] = useState(false);
 
   const handleAddAccount = () => {
@@ -330,24 +332,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Datos</Text>
           <Card>
-            {isFeatureEnabled('enableExportData') && (
-              <>
-                <List.Item
-                  key="settings-export"
-                  title="Exportar datos"
-                  description="Descarga tus transacciones"
-                  left={() => <List.Icon icon="download-outline" color={colors.info} />}
-                  right={() => (
-                    <IconButton
-                      icon="chevron-right"
-                      size={20}
-                      iconColor={colors.textMuted}
-                    />
-                  )}
+            <List.Item
+              key="settings-export"
+              title="Exportar reporte"
+              description="Genera un reporte PDF de tus finanzas"
+              left={() => <List.Icon icon="download-outline" color={colors.primary} />}
+              right={() => (
+                <IconButton
+                  icon="chevron-right"
+                  size={20}
+                  iconColor={colors.textMuted}
                 />
-                <Divider key="divider-export" />
-              </>
-            )}
+              )}
+              onPress={() => setExportVisible(true)}
+            />
+            <Divider key="divider-export" />
             <List.Item
               key="settings-delete"
               title="Borrar todo"
@@ -418,6 +417,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
         presentationStyle="pageSheet"
       >
         <CategoriesScreen onClose={() => setCategoriesVisible(false)} />
+      </Modal>
+
+      {/* Modal de exportación */}
+      <Modal
+        visible={exportVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <ExportScreen onClose={() => setExportVisible(false)} />
       </Modal>
 
       {/* Diálogo de confirmación para borrar todo */}
