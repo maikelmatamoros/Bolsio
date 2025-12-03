@@ -30,7 +30,7 @@ interface TransferScreenProps {
 
 export const TransferScreen: React.FC<TransferScreenProps> = ({ onClose }) => {
   const { addTransaction } = useTransactions();
-  const { accounts, updateAccount, loadAccounts } = useAccounts();
+  const { accounts, updateAccount, updateAccountBalance, loadAccounts } = useAccounts();
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
   const { toast, showToast, hideToast } = useToast();
@@ -112,26 +112,32 @@ export const TransferScreen: React.FC<TransferScreenProps> = ({ onClose }) => {
         destinationAccountId: destinationAccount.id,
       };
 
-      // Calcular nuevos balances
-      const newSourceBalance = sourceAccount.balance - amountInput.numericValue;
-      const newDestinationBalance = destinationAccount.balance + amountInput.numericValue;
-
-      // Actualizar balances primero
-      const sourceUpdated = await updateAccount(sourceAccount.id, {
-        balance: newSourceBalance
-      });
+      // Crear la transacción primero
+      const transactionCreated = await addTransaction(newTransaction);
       
-      const destUpdated = await updateAccount(destinationAccount.id, {
-        balance: newDestinationBalance
-      });
-
-      if (!sourceUpdated || !destUpdated) {
-        showToast('Error al actualizar los balances de las cuentas');
+      if (!transactionCreated) {
+        showToast('Error al crear la transferencia');
         return;
       }
 
-      // Crear la transacción
-      await addTransaction(newTransaction);
+      // Actualizar balances usando updateAccountBalance
+      const sourceUpdated = await updateAccountBalance(
+        sourceAccount.id,
+        amountInput.numericValue,
+        'subtract'
+      );
+      
+      const destUpdated = await updateAccountBalance(
+        destinationAccount.id,
+        amountInput.numericValue,
+        'add'
+      );
+
+      if (!sourceUpdated || !destUpdated) {
+        showToast('Error al actualizar los balances de las cuentas');
+        // Aquí idealmente deberíamos revertir la transacción creada
+        return;
+      }
 
       // Recargar cuentas
       await loadAccounts();

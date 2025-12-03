@@ -40,12 +40,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
   const {
     transactions,
     loading,
-    getBalance,
     getTotalIncome,
     getTotalExpense,
     deleteTransaction,
   } = useTransactions();
-  const { updateAccountBalance } = useAccounts();
+  const { updateAccountBalance, getTotalBalance } = useAccounts();
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
   const { toast, showToast, hideToast } = useToast();
@@ -60,7 +59,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<ITransaction | null>(null);
 
-  const balance = getBalance();
+  const balance = getTotalBalance();
   
   // Calcular ingresos y gastos del mes seleccionado
   const monthlyStats = useMemo(() => {
@@ -127,9 +126,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
       // Revertir balance de la cuenta
       if (transactionToDelete.type === 'transfer') {
         // Para transferencias, revertir en ambas cuentas
+        console.log('=== ELIMINANDO TRANSFERENCIA (HomeScreen) ===');
+        console.log('Transaction:', JSON.stringify(transactionToDelete, null, 2));
+        console.log('Cuenta origen (accountId):', transactionToDelete.accountId);
+        console.log('Cuenta destino (destinationAccountId):', transactionToDelete.destinationAccountId);
+        console.log('Monto:', transactionToDelete.amount);
+        
+        console.log('Devolviendo', transactionToDelete.amount, 'a cuenta origen');
         await updateAccountBalance(transactionToDelete.accountId, transactionToDelete.amount, 'add');
+        
         if (transactionToDelete.destinationAccountId) {
+          console.log('Quitando', transactionToDelete.amount, 'de cuenta destino');
           await updateAccountBalance(transactionToDelete.destinationAccountId, transactionToDelete.amount, 'subtract');
+        } else {
+          console.log('WARNING: No hay destinationAccountId!');
         }
       } else {
         const operation = transactionToDelete.type === 'income' ? 'subtract' : 'add';

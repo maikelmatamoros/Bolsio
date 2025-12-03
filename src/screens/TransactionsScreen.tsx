@@ -136,9 +136,20 @@ export const TransactionsScreen: React.FC = () => {
       // Revertir balance de la cuenta
       if (transactionToDelete.type === 'transfer') {
         // Para transferencias, revertir en ambas cuentas
+        console.log('=== ELIMINANDO TRANSFERENCIA ===');
+        console.log('Transaction:', JSON.stringify(transactionToDelete, null, 2));
+        console.log('Cuenta origen (accountId):', transactionToDelete.accountId);
+        console.log('Cuenta destino (destinationAccountId):', transactionToDelete.destinationAccountId);
+        console.log('Monto:', transactionToDelete.amount);
+        
+        console.log('Devolviendo', transactionToDelete.amount, 'a cuenta origen');
         await updateAccountBalance(transactionToDelete.accountId, transactionToDelete.amount, 'add');
+        
         if (transactionToDelete.destinationAccountId) {
+          console.log('Quitando', transactionToDelete.amount, 'de cuenta destino');
           await updateAccountBalance(transactionToDelete.destinationAccountId, transactionToDelete.amount, 'subtract');
+        } else {
+          console.log('WARNING: No hay destinationAccountId!');
         }
       } else {
         const operation = transactionToDelete.type === 'income' ? 'subtract' : 'add';
