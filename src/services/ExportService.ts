@@ -43,13 +43,17 @@ export class ExportService {
       // Agrupar por mes
       const monthlyData = this.groupByMonth(filteredTransactions, startMonth, endMonth);
 
-      // Calcular totales del período
+      // Calcular totales del período (sin contar transferencias)
       const totalIncome = filteredTransactions
         .filter(t => t.type === 'income')
         .reduce((sum, t) => sum + t.amount, 0);
 
       const totalExpense = filteredTransactions
         .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const totalTransfers = filteredTransactions
+        .filter(t => t.type === 'transfer')
         .reduce((sum, t) => sum + t.amount, 0);
 
       const periodBalance = totalIncome - totalExpense;
@@ -62,6 +66,7 @@ export class ExportService {
         monthlyData,
         totalIncome,
         totalExpense,
+        totalTransfers,
         periodBalance,
         currencySymbol,
         transactionCount: filteredTransactions.length,
@@ -159,6 +164,7 @@ export class ExportService {
     monthlyData: MonthlyData[];
     totalIncome: number;
     totalExpense: number;
+    totalTransfers: number;
     periodBalance: number;
     currencySymbol: string;
     transactionCount: number;
@@ -171,6 +177,7 @@ export class ExportService {
       monthlyData,
       totalIncome,
       totalExpense,
+      totalTransfers,
       periodBalance,
       currencySymbol,
       transactionCount,
@@ -207,7 +214,12 @@ export class ExportService {
     
     const transactionRows = displayedTransactions
       .map(
-        t => `
+        t => {
+          const typeColor = t.type === 'income' ? '#4CAF50' : t.type === 'transfer' ? '#2196F3' : '#F44336';
+          const typeBgColor = t.type === 'income' ? '#E8F5E9' : t.type === 'transfer' ? '#E3F2FD' : '#FFEBEE';
+          const typeLabel = t.type === 'income' ? 'Ingreso' : t.type === 'transfer' ? 'Transferencia' : 'Gasto';
+          
+          return `
         <tr>
           <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-size: 13px;">
             ${new Date(t.date).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -216,15 +228,16 @@ export class ExportService {
             ${t.description}
           </td>
           <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 13px;">
-            <span style="background: ${t.type === 'income' ? '#E8F5E9' : '#FFEBEE'}; color: ${t.type === 'income' ? '#4CAF50' : '#F44336'}; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 600;">
-              ${t.type === 'income' ? 'Ingreso' : 'Gasto'}
+            <span style="background: ${typeBgColor}; color: ${typeColor}; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 600;">
+              ${typeLabel}
             </span>
           </td>
-          <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; text-align: right; font-weight: 600; color: ${t.type === 'income' ? '#4CAF50' : '#F44336'}; font-size: 13px;">
+          <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; text-align: right; font-weight: 600; color: ${typeColor}; font-size: 13px;">
             ${formatCurrency(t.amount, currencySymbol)}
           </td>
         </tr>
-      `
+      `;
+        }
       )
       .join('');
 
@@ -399,6 +412,13 @@ export class ExportService {
             ${formatCurrency(periodBalance, currencySymbol)}
           </div>
         </div>
+        ${totalTransfers > 0 ? `
+        <div class="summary-card">
+          <div class="label">Transferencias</div>
+          <div class="value" style="color: #2196F3;">${formatCurrency(totalTransfers, currencySymbol)}</div>
+          <div style="font-size: 12px; color: #666; margin-top: 4px;">(Movimientos internos)</div>
+        </div>
+        ` : ''}
       </div>
 
       <!-- Desglose Mensual -->

@@ -18,6 +18,7 @@ import { Dialog } from '../components/common/Dialog';
 import { TransactionItem } from '../components/transactions/TransactionItem';
 import { TransactionDetailModal } from '../components/transactions/TransactionDetailModal';
 import { AddTransactionScreen } from './AddTransactionScreen';
+import { TransferScreen } from './TransferScreen';
 import { Toast } from '../components/common/Toast';
 import { useToast } from '../hooks/useToast';
 import { lightColors, darkColors } from '../constants/colors';
@@ -51,6 +52,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
 
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [addTransactionVisible, setAddTransactionVisible] = useState(false);
+  const [transferVisible, setTransferVisible] = useState(false);
   const [initialTransactionType, setInitialTransactionType] = useState<TransactionType>('expense');
   const [editingTransaction, setEditingTransaction] = useState<ITransaction | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<ITransaction | null>(null);
@@ -98,6 +100,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
 
   const handleEditTransaction = () => {
     if (selectedTransaction && isFeatureEnabled('enableTransactionEdit')) {
+      // No permitir editar transferencias por ahora
+      if (selectedTransaction.type === 'transfer') {
+        showToast('Las transferencias no se pueden editar');
+        return;
+      }
       setEditingTransaction(selectedTransaction);
       setInitialTransactionType(selectedTransaction.type);
       setDetailModalVisible(false);
@@ -118,8 +125,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
 
     try {
       // Revertir balance de la cuenta
-      const operation = transactionToDelete.type === 'income' ? 'subtract' : 'add';
-      await updateAccountBalance(transactionToDelete.accountId, transactionToDelete.amount, operation);
+      if (transactionToDelete.type === 'transfer') {
+        // Para transferencias, revertir en ambas cuentas
+        await updateAccountBalance(transactionToDelete.accountId, transactionToDelete.amount, 'add');
+        if (transactionToDelete.destinationAccountId) {
+          await updateAccountBalance(transactionToDelete.destinationAccountId, transactionToDelete.amount, 'subtract');
+        }
+      } else {
+        const operation = transactionToDelete.type === 'income' ? 'subtract' : 'add';
+        await updateAccountBalance(transactionToDelete.accountId, transactionToDelete.amount, operation);
+      }
 
       // Eliminar transacción
       const success = await deleteTransaction(transactionToDelete.id);
@@ -366,6 +381,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
             <Text style={styles.quickActionIcon}>💸</Text>
             <Text style={styles.quickActionText}>Nuevo Gasto</Text>
           </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.quickActionButton, { backgroundColor: colors.primary }]}
+            onPress={() => setTransferVisible(true)}
+          >
+            <Text style={styles.quickActionIcon}>↔️</Text>
+            <Text style={styles.quickActionText}>Transferir</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Recent Transactions */}
@@ -411,6 +433,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
           type={initialTransactionType}
           transaction={editingTransaction || undefined}
           onClose={handleCloseAddTransaction}
+        />
+      </Modal>
+
+      {/* Modal de transferencia */}
+      <Modal
+        visible={transferVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setTransferVisible(false)}
+      >
+        <TransferScreen
+          onClose={() => setTransferVisible(false)}
         />
       </Modal>
 

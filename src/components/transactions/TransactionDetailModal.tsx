@@ -40,8 +40,14 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
 
   if (!transaction) return null;
 
-  const category = getAllCategories(transaction.type).find(c => c.id === transaction.category);
+  const isTransfer = transaction.type === 'transfer';
+  const category = isTransfer 
+    ? { id: 'transfer', name: 'Transferencia', icon: '↔️' }
+    : getAllCategories(transaction.type).find(c => c.id === transaction.category);
   const account = accounts.find(a => a.id === transaction.accountId);
+  const destinationAccount = isTransfer && transaction.destinationAccountId
+    ? accounts.find(a => a.id === transaction.destinationAccountId)
+    : null;
   const isIncome = transaction.type === 'income';
 
   const styles = StyleSheet.create({
@@ -228,19 +234,19 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
               <Text style={styles.amountLabel}>Monto</Text>
               <Text style={[
                 styles.amountValue,
-                { color: isIncome ? colors.income : colors.expense }
+                { color: isTransfer ? colors.primary : (isIncome ? colors.income : colors.expense) }
               ]}>
-                {isIncome ? '+' : '-'} {formatCurrency(transaction.amount, settings.currency.symbol)}
+                {isTransfer ? '' : (isIncome ? '+' : '-')} {formatCurrency(transaction.amount, settings.currency.symbol)}
               </Text>
               <View style={[
                 styles.typeIndicator,
-                { backgroundColor: isIncome ? colors.income + '20' : colors.expense + '20' }
+                { backgroundColor: isTransfer ? colors.primary + '20' : (isIncome ? colors.income + '20' : colors.expense + '20') }
               ]}>
                 <Text style={[
                   styles.typeText,
-                  { color: isIncome ? colors.income : colors.expense }
+                  { color: isTransfer ? colors.primary : (isIncome ? colors.income : colors.expense) }
                 ]}>
-                  {isIncome ? '💰 Ingreso' : '💸 Gasto'}
+                  {isTransfer ? '↔️ Transferencia' : (isIncome ? '💰 Ingreso' : '💸 Gasto')}
                 </Text>
               </View>
             </View>
@@ -267,8 +273,23 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     </View>
                   </View>
                   <View style={styles.detailContent}>
-                    <Text style={styles.detailLabel}>Cuenta</Text>
+                    <Text style={styles.detailLabel}>{isTransfer ? 'Cuenta Origen' : 'Cuenta'}</Text>
                     <Text style={styles.detailValue}>{account.name}</Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Destination Account (only for transfers) */}
+              {isTransfer && destinationAccount && (
+                <View style={styles.detailRow}>
+                  <View style={styles.detailIcon}>
+                    <View style={[styles.accountIconContainer, { backgroundColor: destinationAccount.color }]}>
+                      <Text style={styles.accountIcon}>{destinationAccount.icon}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.detailContent}>
+                    <Text style={styles.detailLabel}>Cuenta Destino</Text>
+                    <Text style={styles.detailValue}>{destinationAccount.name}</Text>
                   </View>
                 </View>
               )}

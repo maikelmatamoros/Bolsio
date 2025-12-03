@@ -58,7 +58,7 @@ export const TransactionProvider: React.FC<TransactionProviderProps> = ({ childr
     return success;
   };
 
-  // Obtener balance total
+  // Obtener balance total (sin contar transferencias)
   const getBalance = (): number => {
     try {
       if (!transactions || transactions.length === 0) {
@@ -66,6 +66,10 @@ export const TransactionProvider: React.FC<TransactionProviderProps> = ({ childr
       }
       
       return transactions.reduce((acc, transaction) => {
+        // Las transferencias no afectan el balance total
+        if (transaction.type === 'transfer') {
+          return acc;
+        }
         if (transaction.type === 'income') {
           return acc + transaction.amount;
         } else {
@@ -118,9 +122,11 @@ export const TransactionProvider: React.FC<TransactionProviderProps> = ({ childr
     return transactions.filter(t => t.category === category);
   };
 
-  // Obtener transacciones por cuenta
+  // Obtener transacciones por cuenta (incluyendo transferencias)
   const getTransactionsByAccount = (accountId: string): ITransaction[] => {
-    return transactions.filter(t => t.accountId === accountId);
+    return transactions.filter(t => 
+      t.accountId === accountId || t.destinationAccountId === accountId
+    );
   };
 
   const value: TransactionContextType = {

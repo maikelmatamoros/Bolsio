@@ -110,6 +110,11 @@ export const TransactionsScreen: React.FC = () => {
 
   const handleEditTransaction = () => {
     if (selectedTransaction && isFeatureEnabled('enableTransactionEdit')) {
+      // No permitir editar transferencias por ahora
+      if (selectedTransaction.type === 'transfer') {
+        showToast('Las transferencias no se pueden editar', 'error');
+        return;
+      }
       setEditingTransaction(selectedTransaction);
       setDetailModalVisible(false);
       setAddTransactionVisible(true);
@@ -129,8 +134,16 @@ export const TransactionsScreen: React.FC = () => {
 
     try {
       // Revertir balance de la cuenta
-      const operation = transactionToDelete.type === 'income' ? 'subtract' : 'add';
-      await updateAccountBalance(transactionToDelete.accountId, transactionToDelete.amount, operation);
+      if (transactionToDelete.type === 'transfer') {
+        // Para transferencias, revertir en ambas cuentas
+        await updateAccountBalance(transactionToDelete.accountId, transactionToDelete.amount, 'add');
+        if (transactionToDelete.destinationAccountId) {
+          await updateAccountBalance(transactionToDelete.destinationAccountId, transactionToDelete.amount, 'subtract');
+        }
+      } else {
+        const operation = transactionToDelete.type === 'income' ? 'subtract' : 'add';
+        await updateAccountBalance(transactionToDelete.accountId, transactionToDelete.amount, operation);
+      }
 
       // Eliminar transacción
       const success = await deleteTransaction(transactionToDelete.id);

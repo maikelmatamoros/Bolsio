@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 interface AccountSelectorModalProps {
   visible: boolean;
   selectedAccountId?: string;
+  excludeAccountId?: string; // Excluir una cuenta específica de la lista
   onSelect: (account: IAccount) => void;
   onDismiss: () => void;
 }
@@ -18,6 +19,7 @@ interface AccountSelectorModalProps {
 export const AccountSelectorModal: React.FC<AccountSelectorModalProps> = ({
   visible,
   selectedAccountId,
+  excludeAccountId,
   onSelect,
   onDismiss,
 }) => {
@@ -25,7 +27,9 @@ export const AccountSelectorModal: React.FC<AccountSelectorModalProps> = ({
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
 
-  const activeAccounts = accounts.filter(a => a.isActive);
+  const activeAccounts = accounts
+    .filter(a => a.isActive)
+    .filter(a => !excludeAccountId || a.id !== excludeAccountId);
 
   const handleSelect = (account: IAccount) => {
     onSelect(account);

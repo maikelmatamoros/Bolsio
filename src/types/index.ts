@@ -1,5 +1,5 @@
 // Tipos para las transacciones
-export type TransactionType = 'income' | 'expense';
+export type TransactionType = 'income' | 'expense' | 'transfer';
 
 export interface ITransaction {
   id: string;
@@ -9,6 +9,7 @@ export interface ITransaction {
   description: string;
   date: Date;
   accountId: string; // ID de la cuenta donde se registra
+  destinationAccountId?: string; // Solo para transferencias: cuenta destino
 }
 
 export interface TransactionJSON {
@@ -19,6 +20,7 @@ export interface TransactionJSON {
   description: string;
   date: string;
   accountId: string;
+  destinationAccountId?: string; // Solo para transferencias: cuenta destino
 }
 
 // Tipos para cuentas/sobres

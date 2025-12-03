@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useCategories } from '../../context/CategoryContext';
+import { useAccounts } from '../../context/AccountContext';
 import { useSettings } from '../../context/SettingsContext';
 import { lightColors, darkColors } from '../../constants/colors';
 import { formatCurrency, formatRelativeDate } from '../../utils/formatters';
@@ -18,18 +19,34 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
   onLongPress 
 }) => {
   const { getAllCategories } = useCategories();
+  const { accounts } = useAccounts();
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
   
   const isIncome = transaction.type === 'income';
-  const amountColor = isIncome ? colors.income : colors.expense;
+  const isTransfer = transaction.type === 'transfer';
+  const amountColor = isTransfer ? colors.primary : (isIncome ? colors.income : colors.expense);
   const sign = isIncome ? '+' : '-';
 
-  // Encontrar la categoría (predefinida o custom)
-  const allCategories = getAllCategories(transaction.type);
-  const categoryData = allCategories.find(cat => cat.id === transaction.category);
-  const categoryIcon = categoryData?.icon || '💰';
-  const categoryName = categoryData?.name || transaction.category;
+  // Para transferencias, obtener cuenta destino
+  let categoryIcon = '💰';
+  let categoryName = transaction.category;
+  let displayDescription = transaction.description;
+
+  if (isTransfer) {
+    categoryIcon = '↔️';
+    const destinationAccount = accounts.find(acc => acc.id === transaction.destinationAccountId);
+    categoryName = 'Transferencia';
+    displayDescription = destinationAccount 
+      ? `Hacia ${destinationAccount.name}` 
+      : transaction.description;
+  } else {
+    // Encontrar la categoría (predefinida o custom) solo para income/expense
+    const allCategories = getAllCategories(transaction.type);
+    const categoryData = allCategories.find(cat => cat.id === transaction.category);
+    categoryIcon = categoryData?.icon || '💰';
+    categoryName = categoryData?.name || transaction.category;
+  }
 
   const styles = StyleSheet.create({
     container: {
@@ -97,14 +114,14 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
           <View style={styles.info}>
             <Text style={styles.category}>{categoryName}</Text>
             <Text style={styles.description} numberOfLines={1}>
-              {transaction.description}
+              {displayDescription}
             </Text>
             <Text style={styles.date}>{formatRelativeDate(transaction.date)}</Text>
           </View>
         </View>
         <View style={styles.rightSection}>
           <Text style={[styles.amount, { color: amountColor }]}>
-            {sign} {formatCurrency(transaction.amount, settings.currency.symbol)}
+            {isTransfer ? '' : sign} {formatCurrency(transaction.amount, settings.currency.symbol)}
           </Text>
         </View>
       </View>
