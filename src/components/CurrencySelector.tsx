@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Modal, Portal, IconButton } from 'react-native-paper';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { Currency, CURRENCIES, useSettings } from '../context/SettingsContext';
 import { lightColors, darkColors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,20 +19,26 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ visible, onD
   };
 
   const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     modal: {
       backgroundColor: colors.surface,
-      margin: 20,
-      borderRadius: 20,
+      width: '90%',
       maxHeight: '80%',
+      borderRadius: 20,
       overflow: 'hidden',
     },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingTop: 16,
-      paddingBottom: 8,
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: 12,
       borderBottomWidth: 1,
       borderBottomColor: colors.outline,
     },
@@ -42,6 +47,9 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ visible, onD
       fontWeight: '700',
       color: colors.text,
     },
+    closeButton: {
+      padding: 8,
+    },
     list: {
       maxHeight: 400,
     },
@@ -49,7 +57,7 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ visible, onD
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: 16,
+      padding: 20,
       borderBottomWidth: 1,
       borderBottomColor: colors.outlineVariant,
     },
@@ -84,48 +92,56 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ visible, onD
   });
 
   return (
-    <Portal>
-      <Modal
-        visible={visible}
-        onDismiss={onDismiss}
-        contentContainerStyle={styles.modal}
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onDismiss}
+    >
+      <TouchableOpacity 
+        style={styles.overlay} 
+        activeOpacity={1} 
+        onPress={onDismiss}
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>Seleccionar Moneda</Text>
-          <IconButton
-            icon="close"
-            size={24}
-            onPress={onDismiss}
-            iconColor={colors.textMuted}
-          />
-        </View>
-        
-        <ScrollView style={styles.list}>
-          {CURRENCIES.map((currency) => (
-            <TouchableOpacity
-              key={currency.code}
-              style={[
-                styles.currencyItem,
-                settings.currency.code === currency.code && styles.currencyItemActive,
-              ]}
-              onPress={() => handleSelectCurrency(currency)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.currencyInfo}>
-                <Text style={styles.currencySymbol}>{currency.symbol}</Text>
-                <View style={styles.currencyText}>
-                  <Text style={styles.currencyName}>{currency.name}</Text>
-                  <Text style={styles.currencyCode}>{currency.code}</Text>
-                </View>
-              </View>
-              
-              {settings.currency.code === currency.code && (
-                <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
-              )}
+        <TouchableOpacity 
+          style={styles.modal} 
+          activeOpacity={1}
+          onPress={(e) => e.stopPropagation()}
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>Seleccionar Moneda</Text>
+            <TouchableOpacity onPress={onDismiss} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color={colors.textMuted} />
             </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </Modal>
-    </Portal>
+          </View>
+          
+          <ScrollView style={styles.list}>
+            {CURRENCIES.map((currency) => (
+              <TouchableOpacity
+                key={currency.code}
+                style={[
+                  styles.currencyItem,
+                  settings.currency.code === currency.code && styles.currencyItemActive,
+                ]}
+                onPress={() => handleSelectCurrency(currency)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.currencyInfo}>
+                  <Text style={styles.currencySymbol}>{currency.symbol}</Text>
+                  <View style={styles.currencyText}>
+                    <Text style={styles.currencyName}>{currency.name}</Text>
+                    <Text style={styles.currencyCode}>{currency.code}</Text>
+                  </View>
+                </View>
+                
+                {settings.currency.code === currency.code && (
+                  <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
   );
 };

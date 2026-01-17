@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
-import { IconButton, Divider } from 'react-native-paper';
 import { useCategories } from '../context/CategoryContext';
 import { useSettings } from '../context/SettingsContext';
 import { lightColors, darkColors } from '../constants/colors';
@@ -64,9 +63,9 @@ export const CategorySelectorModal: React.FC<CategorySelectorModalProps> = ({
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingTop: 16,
-      paddingBottom: 8,
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: 12,
       borderBottomWidth: 1,
       borderBottomColor: colors.outline,
     },
@@ -74,6 +73,9 @@ export const CategorySelectorModal: React.FC<CategorySelectorModalProps> = ({
       fontSize: 20,
       fontWeight: '700',
       color: colors.text,
+    },
+    closeButton: {
+      padding: 8,
     },
     searchContainer: {
       padding: 16,
@@ -103,8 +105,8 @@ export const CategorySelectorModal: React.FC<CategorySelectorModalProps> = ({
     categoryItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 16,
-      paddingVertical: 12,
+      padding: 20,
+      paddingVertical: 16,
     },
     categoryItemActive: {
       backgroundColor: colors.primaryContainer,
@@ -127,6 +129,11 @@ export const CategorySelectorModal: React.FC<CategorySelectorModalProps> = ({
       fontSize: 14,
       padding: 32,
       fontStyle: 'italic',
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.outlineVariant,
+      marginHorizontal: 16,
     },
   });
 
@@ -151,12 +158,9 @@ export const CategorySelectorModal: React.FC<CategorySelectorModalProps> = ({
             <Text style={styles.title}>
               {type === 'income' ? '💰 Categoría de Ingreso' : '💸 Categoría de Gasto'}
             </Text>
-            <IconButton
-              icon="close"
-              size={24}
-              onPress={onDismiss}
-              iconColor={colors.textMuted}
-            />
+            <TouchableOpacity onPress={onDismiss} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color={colors.textMuted} />
+            </TouchableOpacity>
           </View>
 
           {/* Búsqueda */}
@@ -191,7 +195,9 @@ export const CategorySelectorModal: React.FC<CategorySelectorModalProps> = ({
                       <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
                     )}
                   </TouchableOpacity>
-                  {index < filteredPredefined.length - 1 && <Divider />}
+                  {index < filteredPredefined.length - 1 && (
+                    <View style={styles.divider} />
+                  )}
                 </React.Fragment>
               ))}
             </View>
@@ -217,7 +223,9 @@ export const CategorySelectorModal: React.FC<CategorySelectorModalProps> = ({
                       <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
                     )}
                   </TouchableOpacity>
-                  {index < filteredCustom.length - 1 && <Divider />}
+                  {index < filteredCustom.length - 1 && (
+                    <View style={styles.divider} />
+                  )}
                 </React.Fragment>
               ))}
             </View>

@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { IconButton } from 'react-native-paper';
 import { useCategories } from '../context/CategoryContext';
 import { useSettings } from '../context/SettingsContext';
 import { Toast } from '../components/common/Toast';
@@ -18,6 +17,7 @@ import { useToast } from '../hooks/useToast';
 import { useDialog } from '../hooks/useDialog';
 import { lightColors, darkColors } from '../constants/colors';
 import { TransactionType } from '../types';
+import { Ionicons } from '@expo/vector-icons';
 
 interface CategoryFormScreenProps {
   categoryId?: string;
@@ -111,58 +111,69 @@ export const CategoryFormScreen: React.FC<CategoryFormScreenProps> = ({
     },
     header: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
-      padding: 16,
-      paddingTop: 8,
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 8,
       backgroundColor: colors.surface,
       borderBottomWidth: 1,
       borderBottomColor: colors.outline,
     },
     headerTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: colors.text,
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.onSurface,
+    },
+    closeButton: {
+      padding: 4,
     },
     scrollView: {
       flex: 1,
     },
     content: {
       padding: 16,
+      paddingBottom: 100, // Espacio para los botones fijos
     },
     previewCard: {
-      padding: 24,
-      backgroundColor: colors.primaryContainer,
-      borderRadius: 16,
+      flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 24,
+      padding: 16,
+      backgroundColor: colors.surface,
+      borderRadius: 8,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: colors.outline,
     },
     previewIcon: {
-      fontSize: 64,
-      marginBottom: 12,
+      fontSize: 24,
+      marginRight: 12,
     },
     previewName: {
-      fontSize: 20,
-      fontWeight: '700',
-      color: colors.onPrimaryContainer,
+      fontSize: 16,
+      fontWeight: '500',
+      color: colors.onSurface,
+      flex: 1,
     },
     section: {
-      marginBottom: 24,
+      marginBottom: 16,
     },
-    label: {
+    sectionTitle: {
       fontSize: 14,
       fontWeight: '600',
-      color: colors.text,
+      color: colors.onSurface,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
       marginBottom: 8,
     },
     input: {
       backgroundColor: colors.surface,
       borderWidth: 1,
       borderColor: colors.outline,
-      borderRadius: 12,
-      padding: 16,
+      borderRadius: 8,
+      padding: 12,
       fontSize: 16,
-      color: colors.text,
+      color: colors.onSurface,
     },
     iconContainer: {
       flexDirection: 'row',
@@ -181,11 +192,11 @@ export const CategoryFormScreen: React.FC<CategoryFormScreenProps> = ({
       paddingRight: 16,
     },
     iconTab: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
       borderRadius: 16,
       borderWidth: 1,
-      borderColor: colors.outlineVariant,
+      borderColor: colors.outline,
       backgroundColor: colors.surface,
     },
     iconTabActive: {
@@ -193,21 +204,22 @@ export const CategoryFormScreen: React.FC<CategoryFormScreenProps> = ({
       backgroundColor: colors.primaryContainer,
     },
     iconTabText: {
-      fontSize: 13,
-      fontWeight: '600',
-      color: colors.textMuted,
+      fontSize: 12,
+      fontWeight: '500',
+      color: colors.onSurfaceVariant,
     },
     iconTabTextActive: {
       color: colors.primary,
+      fontWeight: '600',
     },
     iconButton: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
+      width: 48,
+      height: 48,
+      borderRadius: 8,
       justifyContent: 'center',
       alignItems: 'center',
-      borderWidth: 2,
-      borderColor: colors.outlineVariant,
+      borderWidth: 1,
+      borderColor: colors.outline,
       backgroundColor: colors.surface,
     },
     iconButtonActive: {
@@ -215,30 +227,42 @@ export const CategoryFormScreen: React.FC<CategoryFormScreenProps> = ({
       backgroundColor: colors.primaryContainer,
     },
     iconText: {
-      fontSize: 28,
+      fontSize: 20,
+    },
+    actionsContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.outline,
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 24,
+      gap: 8,
     },
     saveButton: {
       backgroundColor: colors.primary,
-      padding: 16,
-      borderRadius: 12,
+      padding: 14,
+      borderRadius: 8,
       alignItems: 'center',
-      marginBottom: 12,
     },
     saveButtonText: {
       fontSize: 16,
-      fontWeight: '700',
-      color: colors.white,
+      fontWeight: '600',
+      color: colors.onPrimary || '#FFFFFF',
     },
     deleteButton: {
-      backgroundColor: colors.error,
-      padding: 16,
-      borderRadius: 12,
+      backgroundColor: colors.errorContainer,
+      padding: 14,
+      borderRadius: 8,
       alignItems: 'center',
     },
     deleteButtonText: {
       fontSize: 16,
-      fontWeight: '700',
-      color: colors.white,
+      fontWeight: '600',
+      color: colors.error,
     },
   });
 
@@ -250,7 +274,13 @@ export const CategoryFormScreen: React.FC<CategoryFormScreenProps> = ({
         <Text style={styles.headerTitle}>
           {isEditing ? 'Editar Categoría' : 'Nueva Categoría'}
         </Text>
-        <IconButton icon="close" size={24} onPress={onClose} iconColor={colors.textMuted} />
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={onClose}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="close" size={20} color={colors.onSurfaceVariant} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scrollView}>
@@ -263,24 +293,24 @@ export const CategoryFormScreen: React.FC<CategoryFormScreenProps> = ({
 
           {/* Nombre */}
           <View style={styles.section}>
-            <Text style={styles.label}>Nombre</Text>
+            <Text style={styles.sectionTitle}>Nombre</Text>
             <TextInput
               style={styles.input}
               value={name}
               onChangeText={setName}
               placeholder="Ej: Restaurantes"
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor={colors.onSurfaceVariant}
             />
           </View>
 
           {/* Ícono */}
           <View style={styles.section}>
-            <Text style={styles.label}>Ícono</Text>
-            
+            <Text style={styles.sectionTitle}>Ícono</Text>
+
             {/* Tabs de categorías de íconos */}
             <View style={styles.iconTabsContainer}>
-              <ScrollView 
-                horizontal 
+              <ScrollView
+                horizontal
                 showsHorizontalScrollIndicator={false}
                 style={styles.iconTabsScroll}
                 contentContainerStyle={styles.iconTabs}
@@ -293,6 +323,7 @@ export const CategoryFormScreen: React.FC<CategoryFormScreenProps> = ({
                       selectedIconTab === tab && styles.iconTabActive,
                     ]}
                     onPress={() => setSelectedIconTab(tab as keyof typeof CATEGORY_ICONS)}
+                    activeOpacity={0.7}
                   >
                     <Text style={[
                       styles.iconTabText,
@@ -315,28 +346,38 @@ export const CategoryFormScreen: React.FC<CategoryFormScreenProps> = ({
                     icon === categoryIcon && styles.iconButtonActive,
                   ]}
                   onPress={() => setIcon(categoryIcon)}
+                  activeOpacity={0.7}
                 >
                   <Text style={styles.iconText}>{categoryIcon}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
-
-          {/* Botón Guardar */}
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>
-              {isEditing ? 'Actualizar Categoría' : 'Crear Categoría'}
-            </Text>
-          </TouchableOpacity>
-
-          {/* Botón Eliminar */}
-          {isEditing && (
-            <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-              <Text style={styles.deleteButtonText}>Eliminar Categoría</Text>
-            </TouchableOpacity>
-          )}
         </View>
       </ScrollView>
+
+      {/* Botones de acción fijos */}
+      <View style={styles.actionsContainer}>
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleSave}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.saveButtonText}>
+            {isEditing ? 'Actualizar Categoría' : 'Crear Categoría'}
+          </Text>
+        </TouchableOpacity>
+
+        {isEditing && (
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDelete}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.deleteButtonText}>Eliminar Categoría</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       <Toast visible={toast.visible} message={toast.message} type={toast.type} onHide={hideToast} />
       <Dialog

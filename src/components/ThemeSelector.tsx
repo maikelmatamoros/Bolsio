@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Modal, Portal, IconButton } from 'react-native-paper';
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { useSettings } from '../context/SettingsContext';
 import { lightColors, darkColors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
@@ -35,9 +34,15 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({ visible, onDismiss
   };
 
   const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     modal: {
       backgroundColor: colors.surface,
-      margin: 20,
+      width: '90%',
       borderRadius: 20,
       overflow: 'hidden',
     },
@@ -45,9 +50,9 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({ visible, onDismiss
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingTop: 16,
-      paddingBottom: 8,
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: 12,
       borderBottomWidth: 1,
       borderBottomColor: colors.outline,
     },
@@ -56,14 +61,17 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({ visible, onDismiss
       fontWeight: '700',
       color: colors.text,
     },
+    closeButton: {
+      padding: 8,
+    },
     list: {
-      padding: 16,
+      padding: 20,
     },
     themeItem: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: 16,
+      padding: 20,
       borderRadius: 12,
       borderWidth: 2,
       borderColor: colors.outlineVariant,
@@ -118,63 +126,65 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({ visible, onDismiss
   });
 
   return (
-    <Portal>
-      <Modal
-        visible={visible}
-        onDismiss={onDismiss}
-        contentContainerStyle={styles.modal}
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onDismiss}
+    >
+      <TouchableOpacity 
+        style={styles.overlay} 
+        activeOpacity={1} 
+        onPress={onDismiss}
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>Seleccionar Tema</Text>
-          <IconButton
-            icon="close"
-            size={24}
-            onPress={onDismiss}
-            iconColor={colors.textMuted}
-          />
-        </View>
-        
-        <View style={styles.list}>
-          {THEMES.map((theme) => (
-            <TouchableOpacity
-              key={theme.id}
-              style={[
-                styles.themeItem,
-                settings.theme === theme.id && styles.themeItemActive,
-              ]}
-              onPress={() => handleSelectTheme(theme.id)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.themeInfo}>
-                <View style={[
-                  styles.themeIcon,
-                  settings.theme === theme.id && styles.themeIconActive
-                ]}>
-                  <Ionicons 
-                    name={theme.icon as any} 
-                    size={28} 
-                    color={settings.theme === theme.id ? colors.primary : colors.textMuted} 
-                  />
-                </View>
-                <View style={styles.themeText}>
-                  <Text style={styles.themeName}>{theme.name}</Text>
-                  <Text style={styles.themeDescription}>{theme.description}</Text>
-                </View>
-              </View>
-              
-              {settings.theme === theme.id && (
-                <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
-              )}
+        <TouchableOpacity 
+          style={styles.modal} 
+          activeOpacity={1}
+          onPress={(e) => e.stopPropagation()}
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>Seleccionar Tema</Text>
+            <TouchableOpacity onPress={onDismiss} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color={colors.textMuted} />
             </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* <View style={styles.footer}>
-          <Text style={[styles.footerNote, { color: colors.textMuted }]}>
-            💡 Ahora puedes disfrutar del tema oscuro
-          </Text>
-        </View> */}
-      </Modal>
-    </Portal>
+          </View>
+          
+          <View style={styles.list}>
+            {THEMES.map((theme) => (
+              <TouchableOpacity
+                key={theme.id}
+                style={[
+                  styles.themeItem,
+                  settings.theme === theme.id && styles.themeItemActive,
+                ]}
+                onPress={() => handleSelectTheme(theme.id)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.themeInfo}>
+                  <View style={[
+                    styles.themeIcon,
+                    settings.theme === theme.id && styles.themeIconActive
+                  ]}>
+                    <Ionicons 
+                      name={theme.icon as any} 
+                      size={28} 
+                      color={settings.theme === theme.id ? colors.primary : colors.textMuted} 
+                    />
+                  </View>
+                  <View style={styles.themeText}>
+                    <Text style={styles.themeName}>{theme.name}</Text>
+                    <Text style={styles.themeDescription}>{theme.description}</Text>
+                  </View>
+                </View>
+                
+                {settings.theme === theme.id && (
+                  <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
   );
 };

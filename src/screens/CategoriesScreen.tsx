@@ -9,17 +9,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { IconButton, Chip } from 'react-native-paper';
 import { useCategories } from '../context/CategoryContext';
 import { useSettings } from '../context/SettingsContext';
 import { Card } from '../components/common/Card';
-import { FabMenu, FabMenuItem } from '../components/common/FabMenu';
 import { Toast } from '../components/common/Toast';
 import { useToast } from '../hooks/useToast';
 import { lightColors, darkColors } from '../constants/colors';
-import { TransactionType, ICategory } from '../types';
-import { categories as defaultCategories } from '../constants/categories';
+import { TransactionType } from '../types';
 import { CategoryFormScreen } from './CategoryFormScreen';
+import { Ionicons } from '@expo/vector-icons';
+import { categories as defaultCategories } from '../constants/categories';
 
 interface CategoriesScreenProps {
   onClose?: () => void;
@@ -34,11 +33,13 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onClose }) =
   const [selectedType, setSelectedType] = useState<TransactionType>('expense');
   const [categoryFormVisible, setCategoryFormVisible] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>();
-  const [fabMenuVisible, setFabMenuVisible] = useState(false);
 
   const allCategories = getAllCategories(selectedType);
   const predefinedCategories = selectedType !== 'transfer' ? defaultCategories[selectedType] : [];
-  const customCategoriesList = selectedType !== 'transfer' ? customCategories[selectedType] : [];
+  const customCategoriesList = allCategories.filter(c => c.id.startsWith('custom_'));
+  
+  // Combinar todas las categorías: predefinidas primero, luego personalizadas
+  const allCategoriesToShow = [...predefinedCategories, ...customCategoriesList];
 
   const handleAddCategory = () => {
     setSelectedCategoryId(undefined);
@@ -46,44 +47,14 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onClose }) =
   };
 
   const handleEditCategory = (categoryId: string) => {
-    // Solo permitir editar categorías personalizadas
-    if (categoryId.startsWith('custom_')) {
-      setSelectedCategoryId(categoryId);
-      setCategoryFormVisible(true);
-    } else {
-      showToast('Las categorías predefinidas no se pueden editar', 'info');
-    }
+    setSelectedCategoryId(categoryId);
+    setCategoryFormVisible(true);
   };
 
   const handleCloseCategoryForm = () => {
     setCategoryFormVisible(false);
     setSelectedCategoryId(undefined);
   };
-
-  // FAB Menu Items
-  const fabMenuItems: FabMenuItem[] = [
-    {
-      key: 'add-category',
-      icon: 'add-circle',
-      label: 'Nueva Categoría',
-      onPress: handleAddCategory,
-      backgroundColor: colors.primary,
-    },
-    {
-      key: 'switch-income',
-      icon: 'trending-up',
-      label: 'Ingresos',
-      onPress: () => setSelectedType('income'),
-      backgroundColor: colors.income,
-    },
-    {
-      key: 'switch-expense',
-      icon: 'trending-down',
-      label: 'Gastos',
-      onPress: () => setSelectedType('expense'),
-      backgroundColor: colors.expense,
-    },
-  ];
 
   const styles = StyleSheet.create({
     container: {
@@ -92,18 +63,22 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onClose }) =
     },
     header: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
-      padding: 16,
-      paddingTop: 8,
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 8,
       backgroundColor: colors.surface,
       borderBottomWidth: 1,
       borderBottomColor: colors.outline,
     },
     headerTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: colors.text,
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.onSurface,
+    },
+    closeButton: {
+      padding: 4,
     },
     scrollView: {
       flex: 1,
@@ -113,16 +88,16 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onClose }) =
     },
     tabContainer: {
       flexDirection: 'row',
-      gap: 12,
-      marginBottom: 24,
+      gap: 8,
+      marginBottom: 16,
     },
     tab: {
       flex: 1,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      borderRadius: 20,
-      borderWidth: 2,
-      borderColor: colors.outlineVariant,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.outline,
       alignItems: 'center',
       backgroundColor: colors.surface,
     },
@@ -131,74 +106,81 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onClose }) =
       backgroundColor: colors.primaryContainer,
     },
     tabText: {
-      fontSize: 15,
-      fontWeight: '600',
-      color: colors.textMuted,
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.onSurfaceVariant,
     },
     tabTextActive: {
       color: colors.primary,
+      fontWeight: '600',
     },
     section: {
-      marginBottom: 24,
+      marginBottom: 16,
     },
     sectionHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 12,
+      marginBottom: 8,
     },
     sectionTitle: {
-      fontSize: 16,
-      fontWeight: '700',
-      color: colors.text,
-    },
-    addButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.primaryContainer,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 20,
-    },
-    addButtonText: {
       fontSize: 14,
       fontWeight: '600',
-      color: colors.primary,
-      marginLeft: 4,
+      color: colors.onSurface,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
     },
-    categoryList: {
-      gap: 8,
+    addButton: {
+      padding: 4,
     },
     categoryItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 16,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
       backgroundColor: colors.surface,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.outlineVariant,
+      borderRadius: 8,
+      marginBottom: 4,
+    },
+    categoryItemEditable: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      backgroundColor: colors.surface,
+      borderRadius: 8,
+      marginBottom: 4,
     },
     categoryIcon: {
-      fontSize: 32,
-      marginRight: 16,
+      fontSize: 20,
+      marginRight: 12,
     },
     categoryInfo: {
       flex: 1,
     },
     categoryName: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: colors.text,
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.onSurface,
     },
-    categoryBadge: {
-      marginTop: 4,
+    categoryArrow: {
+      marginLeft: 8,
+    },
+    emptyContainer: {
+      alignItems: 'center',
+      paddingVertical: 32,
+      paddingHorizontal: 16,
+    },
+    emptyIcon: {
+      fontSize: 48,
+      marginBottom: 16,
+      opacity: 0.5,
     },
     emptyText: {
-      textAlign: 'center',
-      color: colors.textMuted,
       fontSize: 14,
-      fontStyle: 'italic',
-      padding: 20,
+      color: colors.onSurfaceVariant,
+      textAlign: 'center',
+      lineHeight: 20,
     },
   });
 
@@ -210,12 +192,13 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onClose }) =
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Categorías</Text>
         {onClose && (
-          <IconButton
-            icon="close"
-            size={24}
+          <TouchableOpacity
+            style={styles.closeButton}
             onPress={onClose}
-            iconColor={colors.textMuted}
-          />
+            activeOpacity={0.7}
+          >
+            <Ionicons name="close" size={20} color={colors.onSurfaceVariant} />
+          </TouchableOpacity>
         )}
       </View>
 
@@ -226,6 +209,7 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onClose }) =
             <TouchableOpacity
               style={[styles.tab, selectedType === 'income' && styles.tabActive]}
               onPress={() => setSelectedType('income')}
+              activeOpacity={0.7}
             >
               <Text style={[styles.tabText, selectedType === 'income' && styles.tabTextActive]}>
                 💰 Ingresos
@@ -234,6 +218,7 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onClose }) =
             <TouchableOpacity
               style={[styles.tab, selectedType === 'expense' && styles.tabActive]}
               onPress={() => setSelectedType('expense')}
+              activeOpacity={0.7}
             >
               <Text style={[styles.tabText, selectedType === 'expense' && styles.tabTextActive]}>
                 💸 Gastos
@@ -241,89 +226,56 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onClose }) =
             </TouchableOpacity>
           </View>
 
-          {/* Categorías Predefinidas */}
+          {/* Lista de Categorías */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Categorías Predefinidas</Text>
-            </View>
-            <View style={styles.categoryList}>
-              {predefinedCategories.map((category) => (
-                <TouchableOpacity
-                  key={category.id}
-                  style={styles.categoryItem}
-                  onPress={() => handleEditCategory(category.id)}
-                >
-                  <Text style={styles.categoryIcon}>{category.icon}</Text>
-                  <View style={styles.categoryInfo}>
-                    <Text style={styles.categoryName}>{category.name}</Text>
-                    <Chip
-                      mode="outlined"
-                      textStyle={{ fontSize: 11 }}
-                      style={styles.categoryBadge}
-                      compact
-                    >
-                      Por defecto
-                    </Chip>
-                  </View>
-                  <IconButton
-                    icon="information-outline"
-                    size={20}
-                    iconColor={colors.textMuted}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {/* Categorías Personalizadas */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Mis Categorías</Text>
-              <TouchableOpacity style={styles.addButton} onPress={handleAddCategory}>
-                <IconButton icon="plus" size={18} iconColor={colors.primary} style={{ margin: 0 }} />
-                <Text style={styles.addButtonText}>Agregar</Text>
+              <Text style={styles.sectionTitle}>Todas las Categorías</Text>
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={handleAddCategory}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="add" size={20} color={colors.primary} />
               </TouchableOpacity>
             </View>
             
-            {customCategoriesList.length === 0 ? (
-              <Card>
+            {allCategoriesToShow.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyIcon}>📂</Text>
                 <Text style={styles.emptyText}>
-                  No tienes categorías personalizadas.{'\n'}
-                  ¡Crea una para empezar!
+                  No hay categorías disponibles.{'\n'}
+                  Crea tu primera categoría para organizar tus finanzas.
                 </Text>
-              </Card>
+              </View>
             ) : (
-              <View style={styles.categoryList}>
-                {customCategoriesList.map((category) => (
+              allCategoriesToShow.map((category) => {
+                const isCustom = category.id.startsWith('custom_');
+                return isCustom ? (
                   <TouchableOpacity
                     key={category.id}
-                    style={styles.categoryItem}
+                    style={styles.categoryItemEditable}
                     onPress={() => handleEditCategory(category.id)}
+                    activeOpacity={0.7}
                   >
                     <Text style={styles.categoryIcon}>{category.icon}</Text>
                     <View style={styles.categoryInfo}>
                       <Text style={styles.categoryName}>{category.name}</Text>
                     </View>
-                    <IconButton
-                      icon="chevron-right"
-                      size={20}
-                      iconColor={colors.textMuted}
-                    />
+                    <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceVariant} />
                   </TouchableOpacity>
-                ))}
-              </View>
+                ) : (
+                  <View key={category.id} style={styles.categoryItem}>
+                    <Text style={styles.categoryIcon}>{category.icon}</Text>
+                    <View style={styles.categoryInfo}>
+                      <Text style={styles.categoryName}>{category.name}</Text>
+                    </View>
+                  </View>
+                );
+              })
             )}
           </View>
         </View>
       </ScrollView>
-
-      {/* Floating Action Button with Menu */}
-      <FabMenu
-        menuItems={fabMenuItems}
-        visible={fabMenuVisible}
-        onToggle={() => setFabMenuVisible(!fabMenuVisible)}
-        fabIcon="menu"
-      />
 
       {/* Toast de notificaciones */}
       <Toast
