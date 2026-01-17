@@ -1,73 +1,73 @@
 // Paleta Minimalista - Colores neutros y suaves para un diseño clean
 
-// TEMA CLARO
+// TEMA CLARO - Paleta Minimalista Definida
 export const lightColors = {
-  // Colores Principales (Neutros)
-  primary: '#6366F1',        // Indigo suave
+  // Colores Principales (Neutros definidos)
+  primary: '#475569',        // Slate más oscuro
   onPrimary: '#FFFFFF',      
-  primaryContainer: '#EEF2FF', 
-  onPrimaryContainer: '#1E1B4B', 
+  primaryContainer: '#E2E8F0', 
+  onPrimaryContainer: '#1E293B', 
   
-  // Secundario (Grises)
-  secondary: '#64748B',      // Slate
+  // Secundario (Grises definidos)
+  secondary: '#64748B',      // Slate medio
   onSecondary: '#FFFFFF',    
   secondaryContainer: '#F1F5F9', 
-  onSecondaryContainer: '#0F172A', 
+  onSecondaryContainer: '#334155', 
   
-  // Terciario (Neutro)
+  // Terciario (Neutro definido)
   tertiary: '#94A3B8',       
-  onTertiary: '#FFFFFF',
-  tertiaryContainer: '#F8FAFC',
-  onTertiaryContainer: '#334155',
+  onTertiary: '#1E293B',
+  tertiaryContainer: '#F1F5F9',
+  onTertiaryContainer: '#475569',
   
-  // Fondos y Superficies (Minimalistas)
-  background: '#FFFFFF',     
-  onBackground: '#1E293B',   
+  // Fondos y Superficies (Definidos)
+  background: '#FAFAFA',     // Gris muy sutil en lugar de blanco puro
+  onBackground: '#0F172A',   // Texto más oscuro
   surface: '#FFFFFF',        
-  onSurface: '#1E293B',      
-  surfaceVariant: '#F8FAFC', 
-  onSurfaceVariant: '#64748B', 
-  surfaceHover: '#F1F5F9',   
+  onSurface: '#0F172A',      // Texto más oscuro
+  surfaceVariant: '#F1F5F9', // Más definido
+  onSurfaceVariant: '#475569', // Texto más oscuro
+  surfaceHover: '#E2E8F0',   // Más definido
   
-  // Colores de Transacciones (Suaves)
-  income: '#10B981',         // Emerald suave
-  expense: '#EF4444',        // Red suave
+  // Colores de Transacciones (Más definidos)
+  income: '#059669',         // Verde más fuerte
+  expense: '#DC2626',        // Rojo más fuerte
   
-  // Estados (Neutros)
+  // Estados (Más definidos)
   error: '#DC2626',          
   onError: '#FFFFFF',        
   errorContainer: '#FEF2F2', 
-  onErrorContainer: '#991B1B', 
+  onErrorContainer: '#7F1D1D', 
   
-  success: '#10B981',        
-  warning: '#F59E0B',        
-  info: '#3B82F6',           
+  success: '#059669',        
+  warning: '#D97706',        
+  info: '#2563EB',           
   
-  // Textos (Jerarquía clara)
-  text: '#1E293B',           
-  textLight: '#64748B',      
-  textMuted: '#94A3B8',      
+  // Textos (Jerarquía definida)
+  text: '#0F172A',           // Mucho más oscuro
+  textLight: '#475569',      // Más oscuro
+  textMuted: '#64748B',      // Más oscuro      
   
   // Neutros
   white: '#FFFFFF',
   black: '#000000',
   
-  // Bordes y Divisores (Minimalistas)
-  outline: '#E2E8F0',        
-  outlineVariant: '#CBD5E1', 
-  border: '#E2E8F0',         
-  borderLight: '#F1F5F9',    
+  // Bordes y Divisores (Más definidos)
+  outline: '#CBD5E1',        // Más visible
+  outlineVariant: '#94A3B8', // Más definido
+  border: '#CBD5E1',         // Más visible
+  borderLight: '#E2E8F0',    // Más definido
   
-  // Sombras (Suaves)
-  shadow: '#000000',
-  shadowDark: '#000000',
+  // Sombras (Más presentes)
+  shadow: 'rgba(0, 0, 0, 0.1)',
+  shadowDark: 'rgba(0, 0, 0, 0.15)',
   
   // Overlays
-  overlay: 'rgba(0, 0, 0, 0.5)',
+  overlay: 'rgba(0, 0, 0, 0.4)',
   
-  // Gradientes (Subtiles)
-  gradientStart: '#EEF2FF',
-  gradientEnd: '#F1F5F9',
+  // Gradientes (Más definidos)
+  gradientStart: '#F1F5F9',
+  gradientEnd: '#FAFAFA',
   
   // Alias para compatibilidad
   danger: '#DC2626',
