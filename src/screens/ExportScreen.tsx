@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { IconButton } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { useTransactions } from '../context/TransactionContext';
 import { useSettings } from '../context/SettingsContext';
@@ -17,6 +16,7 @@ import { useToast } from '../hooks/useToast';
 import { lightColors, darkColors } from '../constants/colors';
 import { ExportService } from '../services/ExportService';
 import { formatMonthYear } from '../utils/formatters';
+import { Toast } from '../components/common/Toast';
 
 interface ExportScreenProps {
   onClose: () => void;
@@ -86,8 +86,9 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ onClose }) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: 12,
       backgroundColor: colors.surface,
       borderBottomWidth: 1,
       borderBottomColor: colors.outline,
@@ -97,11 +98,14 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ onClose }) => {
       fontWeight: '700',
       color: colors.onSurface,
     },
+    closeButton: {
+      padding: 8,
+    },
     content: {
       padding: 20,
     },
     section: {
-      marginBottom: 24,
+      marginBottom: 20,
     },
     sectionTitle: {
       fontSize: 16,
@@ -112,7 +116,7 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ onClose }) => {
     monthSelector: {
       backgroundColor: colors.surface,
       borderRadius: 12,
-      padding: 16,
+      padding: 20,
       borderWidth: 1,
       borderColor: colors.outline,
     },
@@ -139,8 +143,8 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ onClose }) => {
     infoCard: {
       backgroundColor: colors.primaryContainer,
       borderRadius: 12,
-      padding: 16,
-      marginBottom: 24,
+      padding: 20,
+      marginBottom: 20,
     },
     infoText: {
       fontSize: 14,
@@ -150,7 +154,7 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ onClose }) => {
     exportButton: {
       backgroundColor: colors.primary,
       borderRadius: 12,
-      padding: 16,
+      padding: 20,
       alignItems: 'center',
       flexDirection: 'row',
       justifyContent: 'center',
@@ -166,12 +170,12 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ onClose }) => {
     },
     previewSection: {
       marginTop: 8,
-      marginBottom: 24,
+      marginBottom: 20,
     },
     previewCard: {
       backgroundColor: colors.surfaceVariant,
       borderRadius: 12,
-      padding: 16,
+      padding: 20,
     },
     previewLabel: {
       fontSize: 12,
@@ -192,12 +196,9 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ onClose }) => {
 
       {/* Header */}
       <View style={styles.header}>
-        <IconButton
-          icon="close"
-          size={24}
-          iconColor={colors.onSurface}
-          onPress={onClose}
-        />
+        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <Ionicons name="close" size={24} color={colors.onSurface} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Exportar Reporte</Text>
         <View style={{ width: 40 }} />
       </View>
@@ -284,34 +285,12 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ onClose }) => {
       </ScrollView>
 
       {/* Toast */}
-      {toast.visible && (
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 20,
-            left: 20,
-            right: 20,
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: toast.type === 'success' ? colors.income : colors.expense,
-              padding: 16,
-              borderRadius: 12,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 12,
-            }}
-          >
-            <Ionicons
-              name={toast.type === 'success' ? 'checkmark-circle' : 'alert-circle'}
-              size={24}
-              color="#fff"
-            />
-            <Text style={{ color: '#fff', fontSize: 14, flex: 1 }}>{toast.message}</Text>
-          </View>
-        </View>
-      )}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
     </SafeAreaView>
   );
 };
