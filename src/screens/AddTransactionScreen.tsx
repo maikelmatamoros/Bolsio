@@ -177,92 +177,105 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.outline,
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      paddingTop: 8,
     },
     headerTitle: {
-      fontSize: 20,
+      fontSize: 18,
       fontWeight: '600',
       color: colors.onSurface,
     },
     content: {
       flex: 1,
     },
+    scrollContent: {
+      paddingBottom: 20,
+    },
     section: {
-      paddingHorizontal: 16,
-      marginBottom: 20,
+      paddingHorizontal: 20,
+      marginBottom: 16,
+    },
+    rowSection: {
+      flexDirection: 'row',
+      paddingHorizontal: 20,
+      marginBottom: 16,
+      gap: 12,
+    },
+    halfSection: {
+      flex: 1,
     },
     label: {
-      fontSize: 14,
-      fontWeight: '600',
+      fontSize: 13,
+      fontWeight: '500',
       color: colors.onSurfaceVariant,
-      marginBottom: 8,
+      marginBottom: 6,
     },
     amountContainer: {
       backgroundColor: type === 'income' ? colors.income : colors.expense,
-      borderRadius: 16,
-      padding: 24,
+      borderRadius: 12,
+      padding: 16,
       alignItems: 'center',
+      marginBottom: 4,
     },
     amountLabel: {
-      fontSize: 14,
+      fontSize: 12,
       color: '#fff',
-      opacity: 0.9,
-      marginBottom: 8,
+      opacity: 0.8,
+      marginBottom: 4,
     },
     amountInput: {
-      fontSize: 48,
+      fontSize: 32,
       fontWeight: '700',
       color: '#fff',
-      minWidth: 200,
+      minWidth: 150,
       textAlign: 'center',
     },
     selectorButton: {
       borderWidth: 1,
-      borderRadius: 12,
-      padding: 16,
-      minHeight: 60,
+      borderRadius: 8,
+      padding: 12,
+      minHeight: 48,
     },
     selectorContent: {
       flex: 1,
     },
     selectorLabel: {
-      fontSize: 12,
-      marginBottom: 4,
+      fontSize: 11,
+      marginBottom: 2,
     },
     selectedItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 6,
     },
     selectedItemIcon: {
-      fontSize: 20,
+      fontSize: 16,
     },
     selectedItemText: {
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: '500',
     },
     selectorPlaceholder: {
-      fontSize: 16,
+      fontSize: 14,
+      color: colors.onSurfaceVariant,
     },
     accountIconSmall: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 24,
+      height: 24,
+      borderRadius: 12,
       justifyContent: 'center',
       alignItems: 'center',
     },
     accountIconTextSmall: {
-      fontSize: 16,
+      fontSize: 12,
     },
     descriptionInput: {
       borderWidth: 1,
-      borderRadius: 12,
-      padding: 16,
-      fontSize: 16,
-      minHeight: 100,
+      borderRadius: 8,
+      padding: 12,
+      fontSize: 14,
+      minHeight: 80,
       textAlignVertical: 'top',
     },
     dateButton: {
@@ -270,22 +283,23 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
       alignItems: 'center',
       justifyContent: 'space-between',
       borderWidth: 1,
-      borderRadius: 12,
-      padding: 16,
+      borderRadius: 8,
+      padding: 12,
     },
     dateText: {
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: '500',
     },
     saveButton: {
-      margin: 16,
-      borderRadius: 12,
-      padding: 18,
+      marginHorizontal: 20,
+      marginVertical: 16,
+      borderRadius: 8,
+      padding: 14,
       alignItems: 'center',
     },
     saveButtonText: {
-      fontSize: 16,
-      fontWeight: '700',
+      fontSize: 15,
+      fontWeight: '600',
       color: '#fff',
     },
   });
@@ -298,8 +312,8 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
       <View style={styles.header}>
         <Text style={styles.headerTitle}>
           {isEditMode 
-            ? (type === 'income' ? '💰 Editar Ingreso' : '💸 Editar Gasto')
-            : (type === 'income' ? '💰 Nuevo Ingreso' : '💸 Nuevo Gasto')
+            ? (type === 'income' ? 'Editar Ingreso' : 'Editar Gasto')
+            : (type === 'income' ? 'Nuevo Ingreso' : 'Nuevo Gasto')
           }
         </Text>
         <IconButton 
@@ -310,9 +324,9 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
         />
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
         {/* Amount */}
-        <View style={[styles.section, { paddingTop: 20 }]}>
+        <View style={[styles.section, { paddingTop: 12 }]}>
           <Text style={styles.label}>Monto</Text>
           <View style={styles.amountContainer}>
             <Text style={styles.amountLabel}>
@@ -329,62 +343,65 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
           </View>
         </View>
 
-        {/* Category Selector */}
-        <View style={styles.section}>
-          <TouchableOpacity
-            style={[styles.selectorButton, { backgroundColor: colors.surface, borderColor: colors.outline }]}
-            onPress={() => {
-              console.log('Opening category selector');
-              setCategorySelectorVisible(true);
-            }}
-            activeOpacity={0.7}
-          >
-            <View style={styles.selectorContent}>
-              <Text style={[styles.selectorLabel, { color: colors.onSurfaceVariant }]}>Categoría</Text>
-              {selectedCategory ? (
-                <View style={styles.selectedItem}>
-                  <Text style={styles.selectedItemIcon}>{selectedCategory.icon}</Text>
-                  <Text style={[styles.selectedItemText, { color: colors.onSurface }]}>
-                    {selectedCategory.name}
-                  </Text>
-                </View>
-              ) : (
-                <Text style={[styles.selectorPlaceholder, { color: colors.onSurfaceVariant }]}>
-                  Seleccionar
-                </Text>
-              )}
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Account Selector */}
-        <View style={styles.section}>
-          <TouchableOpacity
-            style={[styles.selectorButton, { backgroundColor: colors.surface, borderColor: colors.outline }]}
-            onPress={() => {
-              console.log('Opening account selector');
-              setAccountSelectorVisible(true);
-            }}
-            activeOpacity={0.7}
-          >
-            <View style={styles.selectorContent}>
-              <Text style={[styles.selectorLabel, { color: colors.onSurfaceVariant }]}>Cuenta</Text>
-              {selectedAccount ? (
-                <View style={styles.selectedItem}>
-                  <View style={[styles.accountIconSmall, { backgroundColor: selectedAccount.color }]}>
-                    <Text style={styles.accountIconTextSmall}>{selectedAccount.icon}</Text>
+        {/* Category and Account Row */}
+        <View style={styles.rowSection}>
+          {/* Category Selector */}
+          <View style={styles.halfSection}>
+            <TouchableOpacity
+              style={[styles.selectorButton, { backgroundColor: colors.surface, borderColor: colors.outline }]}
+              onPress={() => {
+                console.log('Opening category selector');
+                setCategorySelectorVisible(true);
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.selectorContent}>
+                <Text style={[styles.selectorLabel, { color: colors.onSurfaceVariant }]}>Categoría</Text>
+                {selectedCategory ? (
+                  <View style={styles.selectedItem}>
+                    <Text style={styles.selectedItemIcon}>{selectedCategory.icon}</Text>
+                    <Text style={[styles.selectedItemText, { color: colors.onSurface }]}>
+                      {selectedCategory.name}
+                    </Text>
                   </View>
-                  <Text style={[styles.selectedItemText, { color: colors.onSurface }]}>
-                    {selectedAccount.name}
+                ) : (
+                  <Text style={[styles.selectorPlaceholder, { color: colors.onSurfaceVariant }]}>
+                    Seleccionar
                   </Text>
-                </View>
-              ) : (
-                <Text style={[styles.selectorPlaceholder, { color: colors.onSurfaceVariant }]}>
-                  Seleccionar
-                </Text>
-              )}
-            </View>
-          </TouchableOpacity>
+                )}
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Account Selector */}
+          <View style={styles.halfSection}>
+            <TouchableOpacity
+              style={[styles.selectorButton, { backgroundColor: colors.surface, borderColor: colors.outline }]}
+              onPress={() => {
+                console.log('Opening account selector');
+                setAccountSelectorVisible(true);
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.selectorContent}>
+                <Text style={[styles.selectorLabel, { color: colors.onSurfaceVariant }]}>Cuenta</Text>
+                {selectedAccount ? (
+                  <View style={styles.selectedItem}>
+                    <View style={[styles.accountIconSmall, { backgroundColor: selectedAccount.color }]}>
+                      <Text style={styles.accountIconTextSmall}>{selectedAccount.icon}</Text>
+                    </View>
+                    <Text style={[styles.selectedItemText, { color: colors.onSurface }]}>
+                      {selectedAccount.name}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={[styles.selectorPlaceholder, { color: colors.onSurfaceVariant }]}>
+                    Seleccionar
+                  </Text>
+                )}
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Description */}
@@ -401,7 +418,7 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
             ]}
             value={description}
             onChangeText={setDescription}
-            placeholder="Ej: Compra en supermercado"
+            placeholder="Descripción"
             placeholderTextColor={colors.onSurfaceVariant}
             multiline
             numberOfLines={4}
@@ -450,7 +467,7 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
           onPress={handleSave}
         >
           <Text style={styles.saveButtonText}>
-            {isEditMode ? 'Actualizar' : `Guardar ${type === 'income' ? 'Ingreso' : 'Gasto'}`}
+            {isEditMode ? 'Actualizar' : 'Guardar'}
           </Text>
         </TouchableOpacity>
       </ScrollView>

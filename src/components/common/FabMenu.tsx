@@ -108,11 +108,12 @@ export const FabMenu: React.FC<FabMenuProps> = ({
     // Label del menú
     fabMenuLabel: {
       position: 'absolute' as const,
-      right: 70,
+      right: 60,
       backgroundColor: colors.surface,
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 16,
+      minWidth: 90,
       shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.1,
