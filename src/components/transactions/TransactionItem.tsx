@@ -38,7 +38,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
     const destinationAccount = accounts.find(acc => acc.id === transaction.destinationAccountId);
     categoryName = 'Transferencia';
     displayDescription = destinationAccount 
-      ? `Hacia ${destinationAccount.name}` 
+      ? `→ ${destinationAccount.name}` 
       : transaction.description;
   } else {
     // Encontrar la categoría (predefinida o custom) solo para income/expense
@@ -55,19 +55,11 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
       alignItems: 'center',
       backgroundColor: colors.surface,
       marginHorizontal: 16,
-      marginVertical: 6,
-      padding: 16,
-      borderRadius: 16,
+      marginVertical: 4,
+      padding: 12,
+      borderRadius: 12,
       borderWidth: 1,
       borderColor: colors.outline,
-      shadowColor: colors.shadow,
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 2,
     },
     leftSection: {
       flexDirection: 'row',
@@ -75,33 +67,33 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
       flex: 1,
     },
     icon: {
-      fontSize: 32,
-      marginRight: 12,
+      fontSize: 24,
+      marginRight: 10,
     },
     info: {
       flex: 1,
     },
     category: {
-      fontSize: 16,
+      fontSize: 15,
       fontWeight: '600',
       color: colors.onSurface,
-      marginBottom: 2,
+      marginBottom: 1,
     },
     description: {
-      fontSize: 14,
+      fontSize: 13,
       color: colors.onSurfaceVariant,
-      marginBottom: 2,
+      marginBottom: 1,
     },
     date: {
-      fontSize: 12,
+      fontSize: 11,
       color: colors.onSurfaceVariant,
-      opacity: 0.7,
+      opacity: 0.8,
     },
     rightSection: {
       alignItems: 'flex-end',
     },
     amount: {
-      fontSize: 18,
+      fontSize: 16,
       fontWeight: '700',
     },
   });
@@ -112,16 +104,18 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
         <View style={styles.leftSection}>
           <Text style={styles.icon}>{categoryIcon}</Text>
           <View style={styles.info}>
-            <Text style={styles.category}>{categoryName}</Text>
+            <Text style={styles.category} numberOfLines={1}>
+              {categoryName}
+            </Text>
             <Text style={styles.description} numberOfLines={1}>
-              {displayDescription}
+              {displayDescription || 'Sin descripción'}
             </Text>
             <Text style={styles.date}>{formatRelativeDate(transaction.date)}</Text>
           </View>
         </View>
         <View style={styles.rightSection}>
           <Text style={[styles.amount, { color: amountColor }]}>
-            {isTransfer ? '' : sign} {formatCurrency(transaction.amount, settings.currency.symbol)}
+            {isTransfer ? '' : sign}{formatCurrency(transaction.amount, settings.currency.symbol)}
           </Text>
         </View>
       </View>

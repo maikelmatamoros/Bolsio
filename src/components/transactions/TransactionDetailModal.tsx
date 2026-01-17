@@ -8,7 +8,6 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { IconButton } from 'react-native-paper';
 import { useCategories } from '../../context/CategoryContext';
 import { useAccounts } from '../../context/AccountContext';
 import { useSettings } from '../../context/SettingsContext';
@@ -58,78 +57,72 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
     },
     modal: {
       backgroundColor: colors.surface,
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      height: '80%',
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      height: '75%',
       shadowColor: '#000',
       shadowOffset: {
         width: 0,
-        height: -4,
+        height: -2,
       },
-      shadowOpacity: 0.25,
-      shadowRadius: 8,
-      elevation: 8,
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      elevation: 4,
     },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 20,
-      paddingTop: 16,
-      paddingBottom: 12,
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 8,
       borderBottomWidth: 1,
       borderBottomColor: colors.outline,
     },
     headerTitle: {
-      fontSize: 18,
-      fontWeight: '700',
+      fontSize: 16,
+      fontWeight: '600',
       color: colors.onSurface,
+    },
+    closeButton: {
+      padding: 4,
     },
     content: {
       flex: 1,
     },
     scrollContent: {
-      padding: 20,
+      padding: 16,
     },
     amountContainer: {
       alignItems: 'center',
-      paddingVertical: 24,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.outline,
-    },
-    amountLabel: {
-      fontSize: 14,
-      color: colors.onSurfaceVariant,
-      marginBottom: 8,
+      paddingVertical: 20,
+      paddingBottom: 16,
     },
     amountValue: {
-      fontSize: 48,
+      fontSize: 36,
       fontWeight: '700',
+      marginBottom: 8,
     },
     typeIndicator: {
-      marginTop: 8,
-      paddingHorizontal: 16,
-      paddingVertical: 6,
-      borderRadius: 20,
-      backgroundColor: colors.surfaceVariant,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 16,
     },
     typeText: {
-      fontSize: 13,
-      fontWeight: '600',
-      color: colors.onSurfaceVariant,
+      fontSize: 12,
+      fontWeight: '500',
     },
     section: {
-      marginTop: 20,
+      marginTop: 16,
     },
     detailRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.outline,
+      paddingVertical: 8,
+      marginBottom: 4,
     },
     detailIcon: {
-      width: 40,
+      width: 32,
       alignItems: 'center',
       marginRight: 12,
     },
@@ -137,44 +130,46 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
       flex: 1,
     },
     detailLabel: {
-      fontSize: 12,
+      fontSize: 11,
       color: colors.onSurfaceVariant,
-      marginBottom: 4,
+      marginBottom: 2,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
     },
     detailValue: {
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: '500',
       color: colors.onSurface,
     },
     categoryIcon: {
-      fontSize: 24,
+      fontSize: 20,
     },
     accountIconContainer: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 28,
+      height: 28,
+      borderRadius: 14,
       justifyContent: 'center',
       alignItems: 'center',
     },
     accountIcon: {
-      fontSize: 18,
+      fontSize: 16,
     },
     descriptionBox: {
       backgroundColor: colors.surfaceVariant,
-      padding: 16,
-      borderRadius: 12,
-      marginTop: 12,
+      padding: 12,
+      borderRadius: 8,
+      marginTop: 8,
     },
     descriptionText: {
-      fontSize: 15,
+      fontSize: 14,
       color: colors.onSurface,
-      lineHeight: 22,
+      lineHeight: 20,
     },
     actionsContainer: {
       flexDirection: 'row',
-      gap: 12,
-      paddingHorizontal: 20,
-      paddingVertical: 16,
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
       borderTopWidth: 1,
       borderTopColor: colors.outline,
     },
@@ -183,9 +178,9 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: 14,
-      borderRadius: 12,
-      gap: 8,
+      padding: 12,
+      borderRadius: 8,
+      gap: 6,
     },
     editButton: {
       backgroundColor: colors.primaryContainer,
@@ -194,7 +189,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
       backgroundColor: colors.errorContainer,
     },
     actionButtonText: {
-      fontSize: 15,
+      fontSize: 14,
       fontWeight: '600',
     },
   });
@@ -215,23 +210,23 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
         <SafeAreaView style={styles.modal} edges={['bottom']}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Detalle de Transacción</Text>
-            <IconButton
-              icon="close"
-              size={24}
+            <Text style={styles.headerTitle}>Detalle</Text>
+            <TouchableOpacity
+              style={styles.closeButton}
               onPress={onDismiss}
-              iconColor={colors.onSurfaceVariant}
-            />
+              activeOpacity={0.7}
+            >
+              <Ionicons name="close" size={20} color={colors.onSurfaceVariant} />
+            </TouchableOpacity>
           </View>
 
-          <ScrollView 
+          <ScrollView
             style={styles.content}
             contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={true}
+            showsVerticalScrollIndicator={false}
           >
             {/* Amount Section */}
             <View style={styles.amountContainer}>
-              <Text style={styles.amountLabel}>Monto</Text>
               <Text style={[
                 styles.amountValue,
                 { color: isTransfer ? colors.primary : (isIncome ? colors.income : colors.expense) }
@@ -297,7 +292,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
               {/* Date */}
               <View style={styles.detailRow}>
                 <View style={styles.detailIcon}>
-                  <Ionicons name="calendar-outline" size={24} color={colors.onSurfaceVariant} />
+                  <Ionicons name="calendar-outline" size={20} color={colors.onSurfaceVariant} />
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Fecha</Text>
@@ -313,17 +308,21 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
               </View>
 
               {/* Description */}
-              <View style={styles.detailRow}>
-                <View style={styles.detailIcon}>
-                  <Ionicons name="document-text-outline" size={24} color={colors.onSurfaceVariant} />
-                </View>
-                <View style={styles.detailContent}>
-                  <Text style={styles.detailLabel}>Descripción</Text>
-                </View>
-              </View>
-              <View style={styles.descriptionBox}>
-                <Text style={styles.descriptionText}>{transaction.description}</Text>
-              </View>
+              {transaction.description && (
+                <>
+                  <View style={styles.detailRow}>
+                    <View style={styles.detailIcon}>
+                      <Ionicons name="document-text-outline" size={20} color={colors.onSurfaceVariant} />
+                    </View>
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>Descripción</Text>
+                    </View>
+                  </View>
+                  <View style={styles.descriptionBox}>
+                    <Text style={styles.descriptionText}>{transaction.description}</Text>
+                  </View>
+                </>
+              )}
             </View>
           </ScrollView>
 
@@ -336,7 +335,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                   onPress={onEdit}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="pencil" size={20} color={colors.primary} />
+                  <Ionicons name="pencil" size={18} color={colors.primary} />
                   <Text style={[styles.actionButtonText, { color: colors.primary }]}>
                     Editar
                   </Text>
@@ -348,7 +347,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                   onPress={onDelete}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="trash-outline" size={20} color={colors.error} />
+                  <Ionicons name="trash-outline" size={18} color={colors.error} />
                   <Text style={[styles.actionButtonText, { color: colors.error }]}>
                     Eliminar
                   </Text>

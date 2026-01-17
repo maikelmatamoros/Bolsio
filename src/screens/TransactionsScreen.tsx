@@ -18,6 +18,8 @@ import { isFeatureEnabled } from '../config/featureFlags';
 import { TransactionItem } from '../components/transactions/TransactionItem';
 import { TransactionDetailModal } from '../components/transactions/TransactionDetailModal';
 import { AddTransactionScreen } from './AddTransactionScreen';
+import { TransferScreen } from './TransferScreen';
+import { FabMenu, FabMenuItem } from '../components/common/FabMenu';
 import { Dialog } from '../components/common/Dialog';
 import { Toast } from '../components/common/Toast';
 import { useToast } from '../hooks/useToast';
@@ -45,6 +47,9 @@ export const TransactionsScreen: React.FC = () => {
   const [addTransactionVisible, setAddTransactionVisible] = useState(false);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<ITransaction | null>(null);
+  const [fabMenuVisible, setFabMenuVisible] = useState(false);
+  const [initialTransactionType, setInitialTransactionType] = useState<TransactionType>('expense');
+  const [transferVisible, setTransferVisible] = useState(false);
 
   // Filtrar transacciones
   const filteredTransactions = useMemo(() => {
@@ -178,45 +183,93 @@ export const TransactionsScreen: React.FC = () => {
     setEditingTransaction(null);
   };
 
+  // FAB Menu Handlers
+  const toggleFabMenu = () => {
+    setFabMenuVisible(!fabMenuVisible);
+  };
+
+  const handleFabMenuItem = (action: 'income' | 'expense' | 'transfer') => {
+    if (action === 'transfer') {
+      setTransferVisible(true);
+    } else {
+      setInitialTransactionType(action);
+      setAddTransactionVisible(true);
+    }
+    setFabMenuVisible(false);
+  };
+
+  // FAB Menu Items
+  const fabMenuItems: FabMenuItem[] = [
+    {
+      key: 'income',
+      icon: 'trending-up',
+      label: 'Ingreso',
+      onPress: () => handleFabMenuItem('income'),
+      backgroundColor: colors.income,
+    },
+    {
+      key: 'expense',
+      icon: 'trending-down',
+      label: 'Gasto',
+      onPress: () => handleFabMenuItem('expense'),
+      backgroundColor: colors.expense,
+    },
+    {
+      key: 'transfer',
+      icon: 'swap-horizontal',
+      label: 'Transferir',
+      onPress: () => handleFabMenuItem('transfer'),
+      backgroundColor: colors.primary,
+    },
+  ];
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
     },
     header: {
-      padding: 16,
-      paddingTop: 8,
+      padding: 20,
+      paddingTop: 12,
       backgroundColor: colors.surface,
       borderBottomWidth: 1,
       borderBottomColor: colors.outline,
     },
-    headerTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: colors.onSurface,
+    headerTop: {
       marginBottom: 12,
+    },
+    headerTitle: {
+      fontSize: 22,
+      fontWeight: '600',
+      color: colors.onSurface,
+      marginBottom: 8,
     },
     searchContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.surfaceVariant,
-      borderRadius: 12,
+      borderRadius: 8,
       paddingHorizontal: 12,
       marginBottom: 12,
+      borderWidth: 1,
+      borderColor: colors.outline,
     },
     searchIcon: {
       marginRight: 8,
     },
     searchInput: {
       flex: 1,
-      paddingVertical: 10,
-      fontSize: 15,
+      paddingVertical: 8,
+      fontSize: 14,
       color: colors.onSurface,
+    },
+    clearButton: {
+      padding: 2,
     },
     filterContainer: {
       flexDirection: 'row',
-      gap: 8,
-      flexWrap: 'wrap',
+      gap: 6,
+      marginBottom: 12,
     },
     filterChip: {
       flexDirection: 'row',
@@ -227,13 +280,14 @@ export const TransactionsScreen: React.FC = () => {
       borderWidth: 1,
       borderColor: colors.outline,
       backgroundColor: colors.surface,
+      gap: 6,
     },
     filterChipActive: {
       backgroundColor: colors.primaryContainer,
       borderColor: colors.primary,
     },
     filterChipText: {
-      fontSize: 14,
+      fontSize: 12,
       fontWeight: '600',
       color: colors.onSurfaceVariant,
     },
@@ -244,8 +298,8 @@ export const TransactionsScreen: React.FC = () => {
       flex: 1,
     },
     dateHeader: {
-      fontSize: 13,
-      fontWeight: '700',
+      fontSize: 12,
+      fontWeight: '600',
       color: colors.onSurfaceVariant,
       paddingHorizontal: 16,
       paddingTop: 16,
@@ -258,37 +312,14 @@ export const TransactionsScreen: React.FC = () => {
       padding: 40,
     },
     emptyIcon: {
-      fontSize: 64,
-      marginBottom: 16,
+      fontSize: 48,
+      marginBottom: 12,
     },
     emptyText: {
-      fontSize: 16,
+      fontSize: 14,
       color: colors.onSurfaceVariant,
       textAlign: 'center',
-      lineHeight: 24,
-    },
-    statsContainer: {
-      flexDirection: 'row',
-      padding: 16,
-      gap: 12,
-      backgroundColor: colors.surface,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.outline,
-    },
-    statCard: {
-      flex: 1,
-      padding: 12,
-      borderRadius: 12,
-      backgroundColor: colors.surfaceVariant,
-    },
-    statLabel: {
-      fontSize: 12,
-      color: colors.onSurfaceVariant,
-      marginBottom: 4,
-    },
-    statValue: {
-      fontSize: 18,
-      fontWeight: '700',
+      lineHeight: 20,
     },
     modalOverlay: {
       flex: 1,
@@ -402,6 +433,33 @@ export const TransactionsScreen: React.FC = () => {
       minWidth: 180,
       textAlign: 'center',
     },
+    monthButton: {
+      padding: 8,
+    },
+    statsContainer: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      gap: 24,
+    },
+    statItem: {
+      alignItems: 'center',
+    },
+    statValue: {
+      fontSize: 18,
+      fontWeight: '700',
+      marginBottom: 2,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: colors.onSurfaceVariant,
+      fontWeight: '500',
+    },
+    statCard: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 8,
+    },
   });
 
   // Calcular estadísticas del filtro actual
@@ -423,26 +481,28 @@ export const TransactionsScreen: React.FC = () => {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Transacciones</Text>
+        <View style={styles.headerTop}>
+          <Text style={styles.headerTitle}>Transacciones</Text>
+        </View>
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <Ionicons 
             name="search-outline" 
-            size={20} 
+            size={18} 
             color={colors.onSurfaceVariant} 
             style={styles.searchIcon}
           />
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar por descripción..."
+            placeholder="Buscar transacciones..."
             placeholderTextColor={colors.onSurfaceVariant}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color={colors.onSurfaceVariant} />
+            <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
+              <Ionicons name="close-circle" size={18} color={colors.onSurfaceVariant} />
             </TouchableOpacity>
           )}
         </View>
@@ -469,8 +529,9 @@ export const TransactionsScreen: React.FC = () => {
               styles.filterChipText,
               filterType === 'income' && styles.filterChipTextActive
             ]}>
-              💰 Ingresos
+              Ingresos
             </Text>
+            <Text>💰</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -481,8 +542,9 @@ export const TransactionsScreen: React.FC = () => {
               styles.filterChipText,
               filterType === 'expense' && styles.filterChipTextActive
             ]}>
-              💸 Gastos
+              Gastos
             </Text>
+            <Text>💸</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -494,16 +556,14 @@ export const TransactionsScreen: React.FC = () => {
           >
             <Ionicons 
               name="funnel-outline" 
-              size={16} 
+              size={14} 
               color={selectedCategories.length > 0 ? colors.primary : colors.onSurfaceVariant}
-              style={{ marginRight: 4 }}
             />
-            <Text style={[
-              styles.filterChipText,
-              selectedCategories.length > 0 && styles.filterChipTextActive
-            ]}>
-              Categorías {selectedCategories.length > 0 && `(${selectedCategories.length})`}
-            </Text>
+            {selectedCategories.length > 0 && (
+              <Text style={[styles.filterChipText, styles.filterChipTextActive]}>
+                {selectedCategories.length}
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -515,8 +575,9 @@ export const TransactionsScreen: React.FC = () => {
               newMonth.setMonth(newMonth.getMonth() - 1);
               setSelectedMonth(newMonth);
             }}
+            style={styles.monthButton}
           >
-            <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+            <Ionicons name="chevron-back" size={20} color={colors.onSurface} />
           </TouchableOpacity>
 
           <Text style={styles.monthText}>
@@ -535,10 +596,12 @@ export const TransactionsScreen: React.FC = () => {
             }}
             disabled={selectedMonth.getFullYear() === new Date().getFullYear() && 
                      selectedMonth.getMonth() === new Date().getMonth()}
-            style={{ opacity: (selectedMonth.getFullYear() === new Date().getFullYear() && 
-                               selectedMonth.getMonth() === new Date().getMonth()) ? 0.3 : 1 }}
+            style={[styles.monthButton, {
+              opacity: (selectedMonth.getFullYear() === new Date().getFullYear() && 
+                         selectedMonth.getMonth() === new Date().getMonth()) ? 0.3 : 1
+            }]}
           >
-            <Ionicons name="chevron-forward" size={24} color={colors.onSurface} />
+            <Ionicons name="chevron-forward" size={20} color={colors.onSurface} />
           </TouchableOpacity>
         </View>
       </View>
@@ -550,7 +613,7 @@ export const TransactionsScreen: React.FC = () => {
             <View style={styles.statCard}>
               <Text style={styles.statLabel}>Ingresos</Text>
               <Text style={[styles.statValue, { color: colors.income }]}>
-                {settings.currency.symbol}{stats.income.toFixed(2)}
+                +{settings.currency.symbol}{stats.income.toFixed(2)}
               </Text>
             </View>
           )}
@@ -558,7 +621,7 @@ export const TransactionsScreen: React.FC = () => {
             <View style={styles.statCard}>
               <Text style={styles.statLabel}>Gastos</Text>
               <Text style={[styles.statValue, { color: colors.expense }]}>
-                {settings.currency.symbol}{stats.expense.toFixed(2)}
+                -{settings.currency.symbol}{stats.expense.toFixed(2)}
               </Text>
             </View>
           )}
@@ -597,6 +660,13 @@ export const TransactionsScreen: React.FC = () => {
           ))
         )}
       </ScrollView>
+
+      {/* Floating Action Button with Menu */}
+      <FabMenu
+        menuItems={fabMenuItems}
+        visible={fabMenuVisible}
+        onToggle={toggleFabMenu}
+      />
 
       {/* Transaction Detail Modal */}
       <TransactionDetailModal
@@ -720,6 +790,18 @@ export const TransactionsScreen: React.FC = () => {
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* Transfer Modal */}
+      <Modal
+        visible={transferVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setTransferVisible(false)}
+      >
+        <TransferScreen
+          onClose={() => setTransferVisible(false)}
+        />
       </Modal>
 
       {/* Toast */}
