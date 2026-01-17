@@ -183,17 +183,25 @@ export const TransferScreen: React.FC<TransferScreenProps> = ({ onClose }) => {
         {/* Monto */}
         <View style={styles.section}>
           <Text style={[styles.label, { color: colors.onSurfaceVariant }]}>Monto</Text>
-          <View style={[styles.amountContainer, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.currencySymbol, { color: colors.text }]}>
+          <View style={[styles.amountContainer, { 
+            backgroundColor: settings.theme === 'dark' ? '#1e293b' : '#eff6ff', 
+            borderColor: settings.theme === 'dark' ? '#334155' : '#3b82f6', 
+            borderWidth: 1 
+          }]}>
+            <Text style={[styles.currencySymbol, { 
+              color: settings.theme === 'dark' ? '#94a3b8' : '#1e40af' 
+            }]}>
               {settings.currency.symbol}
             </Text>
             <TextInput
-              style={[styles.amountInput, { color: colors.text }]}
+              style={[styles.amountInput, { 
+                color: settings.theme === 'dark' ? '#f1f5f9' : '#1e40af' 
+              }]}
               value={amountInput.displayValue}
               onChangeText={amountInput.handleChange}
               keyboardType="decimal-pad"
               placeholder="0.00"
-              placeholderTextColor={colors.onSurfaceVariant}
+              placeholderTextColor={settings.theme === 'dark' ? '#64748b' : '#94a3b8'}
               maxLength={15}
             />
           </View>
@@ -203,20 +211,17 @@ export const TransferScreen: React.FC<TransferScreenProps> = ({ onClose }) => {
         <View style={styles.section}>
           <Text style={[styles.label, { color: colors.onSurfaceVariant }]}>Desde</Text>
           <TouchableOpacity
-            style={[styles.selector, { backgroundColor: colors.surface }]}
+            style={[styles.selector, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outline }]}
             onPress={() => setShowSourceAccountSelector(true)}
           >
             {sourceAccount ? (
               <View style={styles.accountInfo}>
-                <View style={styles.accountIconContainer}>
+                <View style={[styles.accountIconContainer, { backgroundColor: sourceAccount.color }]}>
                   <Text style={styles.accountIcon}>{sourceAccount.icon}</Text>
                 </View>
                 <View style={styles.accountDetails}>
                   <Text style={[styles.accountName, { color: colors.text }]}>
                     {sourceAccount.name}
-                  </Text>
-                  <Text style={[styles.accountBalance, { color: colors.onSurfaceVariant }]}>
-                    Saldo: {formatCurrency(sourceAccount.balance, settings.currency.symbol)}
                   </Text>
                 </View>
               </View>
@@ -229,32 +234,22 @@ export const TransferScreen: React.FC<TransferScreenProps> = ({ onClose }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Icono de transferencia */}
-        <View style={styles.transferIconContainer}>
-          <View style={[styles.transferIconCircle, { backgroundColor: colors.surface }]}>
-            <Ionicons name="arrow-down" size={24} color={colors.primary} />
-          </View>
-        </View>
-
         {/* Cuenta Destino */}
         <View style={styles.section}>
           <Text style={[styles.label, { color: colors.onSurfaceVariant }]}>Hacia</Text>
           <TouchableOpacity
-            style={[styles.selector, { backgroundColor: colors.surface }]}
+            style={[styles.selector, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outline }]}
             onPress={() => setShowDestinationAccountSelector(true)}
             disabled={!sourceAccount}
           >
             {destinationAccount ? (
               <View style={styles.accountInfo}>
-                <View style={styles.accountIconContainer}>
+                <View style={[styles.accountIconContainer, { backgroundColor: destinationAccount.color }]}>
                   <Text style={styles.accountIcon}>{destinationAccount.icon}</Text>
                 </View>
                 <View style={styles.accountDetails}>
                   <Text style={[styles.accountName, { color: colors.text }]}>
                     {destinationAccount.name}
-                  </Text>
-                  <Text style={[styles.accountBalance, { color: colors.onSurfaceVariant }]}>
-                    Saldo: {formatCurrency(destinationAccount.balance, settings.currency.symbol)}
                   </Text>
                 </View>
               </View>
@@ -273,10 +268,10 @@ export const TransferScreen: React.FC<TransferScreenProps> = ({ onClose }) => {
             Descripción (opcional)
           </Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.surface, color: colors.text }]}
+            style={[styles.input, { backgroundColor: colors.surface, color: colors.text, borderWidth: 1, borderColor: colors.outline, borderRadius: 8, padding: 12, fontSize: 14, minHeight: 40 }]}
             value={description}
             onChangeText={setDescription}
-            placeholder="Ej: Pago de deuda, ahorro, etc."
+            placeholder="Ej: Pago de deuda..."
             placeholderTextColor={colors.onSurfaceVariant}
             maxLength={100}
           />
@@ -286,10 +281,10 @@ export const TransferScreen: React.FC<TransferScreenProps> = ({ onClose }) => {
         <View style={styles.section}>
           <Text style={[styles.label, { color: colors.onSurfaceVariant }]}>Fecha</Text>
           <TouchableOpacity
-            style={[styles.selector, { backgroundColor: colors.surface }]}
+            style={[styles.selector, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outline }]}
             onPress={() => setShowDatePicker(true)}
           >
-            <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+            <Ionicons name="calendar-outline" size={16} color={colors.primary} />
             <Text style={[styles.selectorText, { color: colors.text }]}>
               {formatDate(date)}
             </Text>
@@ -356,8 +351,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 8,
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
   },
   headerTitle: {
@@ -366,10 +361,10 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 20,
+    padding: 16,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   label: {
     fontSize: 14,
@@ -379,25 +374,25 @@ const styles = StyleSheet.create({
   amountContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 8,
+    padding: 12,
   },
   currencySymbol: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: '600',
     marginRight: 8,
   },
   amountInput: {
     flex: 1,
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: '600',
   },
   selector: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 8,
+    padding: 12,
   },
   selectorPlaceholder: {
     fontSize: 16,
@@ -413,16 +408,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   accountIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F0F0F0',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   accountIcon: {
-    fontSize: 20,
+    fontSize: 16,
   },
   accountDetails: {
     flex: 1,
@@ -447,12 +441,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   input: {
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
   },
   footer: {
-    padding: 20,
+    padding: 16,
     borderTopWidth: 1,
   },
   transferButton: {

@@ -212,22 +212,26 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
       marginBottom: 6,
     },
     amountContainer: {
-      backgroundColor: type === 'income' ? colors.income : colors.expense,
+      backgroundColor: settings.theme === 'dark' 
+        ? (type === 'income' ? '#1e293b' : '#1e293b') 
+        : (type === 'income' ? colors.income : colors.expense),
       borderRadius: 12,
       padding: 16,
       alignItems: 'center',
       marginBottom: 4,
+      borderWidth: settings.theme === 'dark' ? 1 : 0,
+      borderColor: settings.theme === 'dark' ? (type === 'income' ? '#10b981' : '#ef4444') : undefined,
     },
     amountLabel: {
       fontSize: 12,
-      color: '#fff',
-      opacity: 0.8,
+      color: settings.theme === 'dark' ? '#94a3b8' : '#fff',
+      opacity: settings.theme === 'dark' ? 1 : 0.8,
       marginBottom: 4,
     },
     amountInput: {
       fontSize: 32,
       fontWeight: '700',
-      color: '#fff',
+      color: settings.theme === 'dark' ? '#f1f5f9' : '#fff',
       minWidth: 150,
       textAlign: 'center',
     },
@@ -337,7 +341,7 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
               value={amountInput.displayValue}
               onChangeText={amountInput.handleChange}
               placeholder="0.00"
-              placeholderTextColor="rgba(255, 255, 255, 0.6)"
+              placeholderTextColor={settings.theme === 'dark' ? '#64748b' : 'rgba(255, 255, 255, 0.6)'}
               keyboardType="decimal-pad"
             />
           </View>
