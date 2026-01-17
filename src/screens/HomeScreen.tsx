@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
+  Dimensions,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -13,10 +15,9 @@ import { useTransactions } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
 import { useSettings } from '../context/SettingsContext';
 import { isFeatureEnabled } from '../config/featureFlags';
-import { Card } from '../components/common/Card';
 import { Dialog } from '../components/common/Dialog';
+import { FabMenu, FabMenuItem } from '../components/common/FabMenu';
 import { TransactionItem } from '../components/transactions/TransactionItem';
-import { TransactionDetailModal } from '../components/transactions/TransactionDetailModal';
 import { AddTransactionScreen } from './AddTransactionScreen';
 import { TransferScreen } from './TransferScreen';
 import { Toast } from '../components/common/Toast';
@@ -25,6 +26,9 @@ import { lightColors, darkColors } from '../constants/colors';
 import { formatCurrency } from '../utils/formatters';
 import { TransactionType, ITransaction } from '../types';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface NavigationProp {
   navigate: (screen: string, params?: { type?: TransactionType }) => void;
@@ -54,17 +58,53 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
   const [transferVisible, setTransferVisible] = useState(false);
   const [initialTransactionType, setInitialTransactionType] = useState<TransactionType>('expense');
   const [editingTransaction, setEditingTransaction] = useState<ITransaction | null>(null);
-  const [selectedTransaction, setSelectedTransaction] = useState<ITransaction | null>(null);
-  const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<ITransaction | null>(null);
 
+  const [fabMenuVisible, setFabMenuVisible] = useState(false);
+  const [cardAnimations] = useState({
+    // No hay animaciones de cards actualmente
+  });
+
+  // Función para obtener las categorías más usadas
+  const getTopCategories = (limit: number) => {
+    const categoryTotals: { [key: string]: number } = {};
+    
+    transactions
+      .filter(t => t.type === 'expense' && t.category)
+      .forEach(t => {
+        categoryTotals[t.category!] = (categoryTotals[t.category!] || 0) + t.amount;
+      });
+    
+    return Object.entries(categoryTotals)
+      .map(([name, amount]) => ({ name, amount }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, limit);
+  };
+
+  // Función para obtener emoji de categoría
+  const getCategoryEmoji = (categoryName: string) => {
+    const emojiMap: { [key: string]: string } = {
+      'Comida': '🍽️',
+      'Transporte': '🚗',
+      'Entretenimiento': '🎬',
+      'Salud': '🏥',
+      'Educación': '📚',
+      'Ropa': '👕',
+      'Casa': '🏠',
+      'Servicios': '💡',
+      'Viajes': '✈️',
+      'Otros': '📦'
+    };
+    return emojiMap[categoryName] || '📦';
+  };
+
   const balance = getTotalBalance();
-  
-  // Calcular ingresos y gastos del mes seleccionado
-  const monthlyStats = useMemo(() => {
-    const year = selectedMonth.getFullYear();
-    const month = selectedMonth.getMonth();
+
+  const currentMonthStats = useMemo(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
     
     const monthTransactions = transactions.filter(t => {
       const transactionDate = new Date(t.date);
@@ -79,44 +119,64 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
 
-    return { income, expense };
-  }, [transactions, selectedMonth]);
+    return { income, expense, net: income - expense };
+  }, [transactions]);
 
-  // Obtener las últimas 5 transacciones
-  const recentTransactions = [...transactions]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5);
+  // Calcular estadísticas totales
+  const totalStats = useMemo(() => {
+    const income = transactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    const expense = transactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    return { income, expense, net: income - expense };
+  }, [transactions]);
+
+
+
+  const toggleFabMenu = () => {
+    setFabMenuVisible(!fabMenuVisible);
+  };
+
+  const handleFabMenuItem = (action: 'income' | 'expense' | 'transfer') => {
+    if (action === 'transfer') {
+      setTransferVisible(true);
+    } else {
+      handleOpenAddTransaction(action);
+    }
+  };
+
+  // FAB Menu Items
+  const fabMenuItems: FabMenuItem[] = [
+    {
+      key: 'income',
+      icon: 'trending-up',
+      label: 'Ingreso',
+      onPress: () => handleFabMenuItem('income'),
+      backgroundColor: colors.income,
+    },
+    {
+      key: 'expense',
+      icon: 'trending-down',
+      label: 'Gasto',
+      onPress: () => handleFabMenuItem('expense'),
+      backgroundColor: colors.expense,
+    },
+    {
+      key: 'transfer',
+      icon: 'swap-horizontal',
+      label: 'Transferir',
+      onPress: () => handleFabMenuItem('transfer'),
+      backgroundColor: colors.primary,
+    },
+  ];
 
   const handleOpenAddTransaction = (type: TransactionType) => {
     setInitialTransactionType(type);
     setAddTransactionVisible(true);
-  };
-
-  const handleTransactionPress = (transaction: ITransaction) => {
-    setSelectedTransaction(transaction);
-    setDetailModalVisible(true);
-  };
-
-  const handleEditTransaction = () => {
-    if (selectedTransaction && isFeatureEnabled('enableTransactionEdit')) {
-      // No permitir editar transferencias por ahora
-      if (selectedTransaction.type === 'transfer') {
-        showToast('Las transferencias no se pueden editar');
-        return;
-      }
-      setEditingTransaction(selectedTransaction);
-      setInitialTransactionType(selectedTransaction.type);
-      setDetailModalVisible(false);
-      setAddTransactionVisible(true);
-    }
-  };
-
-  const handleDeleteTransaction = () => {
-    if (selectedTransaction && isFeatureEnabled('enableTransactionDelete')) {
-      setTransactionToDelete(selectedTransaction);
-      setDetailModalVisible(false);
-      setDeleteDialogVisible(true);
-    }
   };
 
   const confirmDelete = async () => {
@@ -126,13 +186,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
       // Revertir balance de la cuenta
       if (transactionToDelete.type === 'transfer') {
         // Para transferencias, revertir en ambas cuentas
-        console.log('=== ELIMINANDO TRANSFERENCIA (HomeScreen) ===');
-        console.log('Transaction:', JSON.stringify(transactionToDelete, null, 2));
-        console.log('Cuenta origen (accountId):', transactionToDelete.accountId);
-        console.log('Cuenta destino (destinationAccountId):', transactionToDelete.destinationAccountId);
-        console.log('Monto:', transactionToDelete.amount);
-        
-        console.log('Devolviendo', transactionToDelete.amount, 'a cuenta origen');
         await updateAccountBalance(transactionToDelete.accountId, transactionToDelete.amount, 'add');
         
         if (transactionToDelete.destinationAccountId) {
@@ -177,260 +230,406 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
       flex: 1,
     },
     header: {
-      padding: 16,
-      paddingTop: 8,
-      backgroundColor: colors.surface,
+      paddingHorizontal: 24,
+      paddingTop: 16,
+      paddingBottom: 8,
     },
     headerTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
+      fontSize: 32,
+      fontWeight: '800',
       color: colors.text,
+      letterSpacing: -1,
     },
     headerSubtitle: {
-      fontSize: 13,
-      color: colors.textLight,
-      marginTop: 2,
+      fontSize: 16,
+      color: colors.textMuted,
+      marginTop: 4,
+      fontWeight: '400',
     },
-    balanceCard: {
+
+    // Cards principales
+    card: {
+      marginHorizontal: 20,
+      marginVertical: 8,
+      borderRadius: 20,
+      overflow: 'hidden',
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.outline,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 12,
+      elevation: 8,
+    },
+    cardExpanded: {
       marginHorizontal: 16,
-      backgroundColor: colors.primaryContainer,
-      padding: 20,
-      marginTop: 8,
     },
-    balanceLabel: {
-      fontSize: 14,
-      color: colors.onPrimaryContainer,
-      opacity: 0.9,
+    cardTouchable: {
+      borderRadius: 20,
     },
-    balanceAmount: {
-      fontSize: 32,
-      fontWeight: 'bold',
-      color: colors.onPrimaryContainer,
-      marginVertical: 6,
-    },
-    monthSelector: {
+
+    // Stats Grid
+    statsGrid: {
       flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
       gap: 12,
-      marginTop: 8,
-      paddingVertical: 8,
     },
-    monthText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: colors.onPrimaryContainer,
-      textTransform: 'capitalize',
-      minWidth: 150,
-      textAlign: 'center',
+    statCard: {
+      flex: 1,
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 12,
+      padding: 16,
+      alignItems: 'center',
     },
-    balanceDetails: {
+    statIcon: {
+      fontSize: 20,
+      marginBottom: 8,
+    },
+    statValue: {
+      fontSize: 16,
+      fontWeight: '700',
+      marginBottom: 2,
+    },
+    statLabel: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: colors.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+
+    // Expanded Content
+    expandedContent: {
+      marginTop: 16,
+    },
+    metricsSection: {
+      marginTop: 20,
+    },
+    metricRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginTop: 12,
-      paddingTop: 12,
-      borderTopWidth: 1,
-      borderTopColor: settings.theme === 'dark' ? 'rgba(234, 221, 255, 0.2)' : 'rgba(33, 0, 93, 0.2)',
-    },
-    balanceItem: {
-      flex: 1,
-    },
-    balanceItemLabel: {
-      fontSize: 12,
-      color: colors.onPrimaryContainer,
-      opacity: 0.8,
-    },
-    balanceItemAmount: {
-      fontSize: 16,
-      fontWeight: '600',
-      marginTop: 4,
-      color: colors.onPrimaryContainer,
-    },
-    quickActionsContainer: {
-      flexDirection: 'row',
-      paddingHorizontal: 16,
-      marginTop: 16,
       gap: 12,
     },
-    quickActionButton: {
+    metricItem: {
       flex: 1,
-      padding: 16,
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 12,
+      borderWidth: 1,
+      borderColor: colors.outline,
+    },
+    metricValue: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    metricLabel: {
+      fontSize: 11,
+      fontWeight: '500',
+      color: colors.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+
+    // Categories Summary
+    categoriesSummary: {
+      marginBottom: 24,
+    },
+    summaryTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 12,
+    },
+    categoriesGrid: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    categoryItem: {
+      flex: 1,
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 12,
+      borderWidth: 1,
+      borderColor: colors.outline,
+    },
+    categoryIcon: {
+      width: 32,
+      height: 32,
       borderRadius: 16,
       alignItems: 'center',
       justifyContent: 'center',
-      shadowColor: colors.shadow,
-      shadowOffset: {
-        width: 0,
-        height: 4,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 4,
-    },
-    quickActionIcon: {
-      fontSize: 28,
       marginBottom: 6,
     },
-    quickActionText: {
-      color: colors.white,
-      fontSize: 15,
+    categoryEmoji: {
+      fontSize: 16,
+    },
+    categoryName: {
+      fontSize: 11,
+      fontWeight: '500',
+      color: colors.text,
+      marginBottom: 4,
+      textAlign: 'center',
+    },
+    categoryAmount: {
+      fontSize: 12,
       fontWeight: '600',
     },
-    recentSection: {
-      padding: 16,
-      paddingTop: 12,
+
+    // Empty Categories
+    emptyCategories: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 20,
     },
-    recentHeader: {
+    emptyCategoriesIcon: {
+      fontSize: 32,
+      marginBottom: 8,
+      opacity: 0.5,
+    },
+    emptyCategoriesText: {
+      fontSize: 14,
+      color: colors.textMuted,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+
+    // Quick Actions
+    actionsCard: {
+      padding: 24,
+    },
+    actionsHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 12,
+      marginBottom: 20,
     },
-    sectionTitle: {
+    actionsTitle: {
       fontSize: 18,
-      fontWeight: '700',
+      fontWeight: '600',
       color: colors.text,
     },
-    seeAllText: {
+    actionsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+    },
+    actionButton: {
+      flex: 1,
+      minWidth: '48%',
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      padding: 20,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.outline,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    actionIcon: {
+      fontSize: 28,
+      marginBottom: 8,
+    },
+    actionText: {
       fontSize: 14,
-      color: colors.primary,
       fontWeight: '600',
+      color: colors.text,
+    },
+
+    // Empty State
+    emptyContainer: {
+      alignItems: 'center',
+      padding: 40,
+    },
+    emptyIcon: {
+      fontSize: 48,
+      marginBottom: 16,
+      opacity: 0.5,
     },
     emptyText: {
-      textAlign: 'center',
-      color: colors.textLight,
       fontSize: 16,
+      color: colors.textMuted,
+      textAlign: 'center',
+      lineHeight: 24,
+    },
+
+    // Quick Summary Card
+    quickSummaryCard: {
       padding: 20,
     },
+    quickSummaryHeader: {
+      marginBottom: 16,
+    },
+    quickSummaryTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    quickSummaryGrid: {
+      gap: 12,
+    },
+    quickSummaryRow: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    quickSummaryItem: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 8,
+    },
+    quickSummaryItemFull: {
+      alignItems: 'center',
+      paddingVertical: 16,
+      marginBottom: 8,
+    },
+    metricSection: {
+      marginBottom: 16,
+    },
+    metricSectionTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    quickSummaryValue: {
+      fontSize: 16,
+      fontWeight: '700',
+      marginBottom: 4,
+    },
+    quickSummaryLabel: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: colors.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    quickSummarySublabel: {
+      fontSize: 10,
+      fontWeight: '400',
+      textTransform: 'none',
+      letterSpacing: 0,
+      marginTop: 2,
+    },
+    motivationalContainer: {
+      alignItems: 'center',
+      paddingTop: 16,
+      borderTopWidth: 1,
+      borderTopColor: colors.outline,
+    },
+    motivationalText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.text,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+
   });
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
-      <ScrollView style={styles.scrollView}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Bolsio</Text>
-          <Text style={styles.headerSubtitle}>Control de Finanzas</Text>
+          <Text style={styles.headerSubtitle}>Tu control financiero</Text>
         </View>
 
-        {/* Balance Card */}
-        <Card style={styles.balanceCard}>
-          <View>
-            <Text style={styles.balanceLabel}>Balance Total</Text>
-            <Text style={[
-              styles.balanceAmount,
-              { color: balance >= 0 ? colors.income : colors.expense }
-            ]}>
-              {formatCurrency(balance, settings.currency.symbol)}
+        {/* Quick Summary Card */}
+        <View style={[styles.card, styles.quickSummaryCard]}>
+          <View style={styles.quickSummaryHeader}>
+            <Text style={styles.quickSummaryTitle}>📊 Resumen Rápido</Text>
+          </View>
+
+          <View style={styles.quickSummaryGrid}>
+            {/* Primera fila: Balance Total */}
+            <View style={[styles.quickSummaryItem, styles.quickSummaryItemFull]}>
+              <Text style={[styles.quickSummaryValue, {
+                color: balance >= 0 ? colors.income : colors.expense,
+                fontSize: 28,
+                fontWeight: '800'
+              }]}>
+                {balance === 0 ? '--' : formatCurrency(balance, settings.currency.symbol)}
+              </Text>
+              <Text style={styles.quickSummaryLabel}>Balance Total</Text>
+              {balance === 0 && (
+                <Text style={[styles.quickSummarySublabel, { color: colors.textMuted }]}>
+                  No hay cuentas configuradas
+                </Text>
+              )}
+            </View>
+
+            {/* Segunda fila: Este mes */}
+            <View style={styles.metricSection}>
+              <Text style={styles.metricSectionTitle}>Este mes</Text>
+              <View style={styles.quickSummaryRow}>
+                <View style={styles.quickSummaryItem}>
+                  <Text style={[styles.quickSummaryValue, { color: colors.income }]}>
+                    {formatCurrency(currentMonthStats.income, settings.currency.symbol)}
+                  </Text>
+                  <Text style={styles.quickSummaryLabel}>Ingresos</Text>
+                </View>
+
+                <View style={styles.quickSummaryItem}>
+                  <Text style={[styles.quickSummaryValue, { color: colors.expense }]}>
+                    {formatCurrency(currentMonthStats.expense, settings.currency.symbol)}
+                  </Text>
+                  <Text style={styles.quickSummaryLabel}>Gastos</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Tercera fila: Total acumulado */}
+            <View style={styles.metricSection}>
+              <Text style={styles.metricSectionTitle}>Total acumulado</Text>
+              <View style={styles.quickSummaryRow}>
+                <View style={styles.quickSummaryItem}>
+                  <Text style={[styles.quickSummaryValue, { color: colors.income, fontSize: 14 }]}>
+                    {formatCurrency(totalStats.income, settings.currency.symbol)}
+                  </Text>
+                  <Text style={[styles.quickSummaryLabel, { fontSize: 10 }]}>Ingresos</Text>
+                </View>
+
+                <View style={styles.quickSummaryItem}>
+                  <Text style={[styles.quickSummaryValue, { color: colors.expense, fontSize: 14 }]}>
+                    {formatCurrency(totalStats.expense, settings.currency.symbol)}
+                  </Text>
+                  <Text style={[styles.quickSummaryLabel, { fontSize: 10 }]}>Gastos</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Motivational message */}
+          <View style={styles.motivationalContainer}>
+            <Text style={styles.motivationalText}>
+              {balance > 0
+                ? "¡Excelente! Tu balance es positivo 💪"
+                : balance === 0
+                ? "Comienza agregando tus cuentas 📱"
+                : "Oportunidad de mejorar tu balance 📈"
+              }
             </Text>
-            
-            {/* Month Selector */}
-            <View style={styles.monthSelector}>
-              <TouchableOpacity
-                onPress={() => {
-                  const newMonth = new Date(selectedMonth);
-                  newMonth.setMonth(newMonth.getMonth() - 1);
-                  setSelectedMonth(newMonth);
-                }}
-              >
-                <Ionicons name="chevron-back" size={20} color={colors.primary} />
-              </TouchableOpacity>
-              <Text style={styles.monthText}>
-                {selectedMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-              </Text>
-              <TouchableOpacity
-                onPress={() => {
-                  const newMonth = new Date(selectedMonth);
-                  newMonth.setMonth(newMonth.getMonth() + 1);
-                  setSelectedMonth(newMonth);
-                }}
-                disabled={selectedMonth.getMonth() === new Date().getMonth() && selectedMonth.getFullYear() === new Date().getFullYear()}
-              >
-                <Ionicons 
-                  name="chevron-forward" 
-                  size={20} 
-                  color={selectedMonth.getMonth() === new Date().getMonth() && selectedMonth.getFullYear() === new Date().getFullYear() 
-                    ? colors.onSurfaceVariant 
-                    : colors.primary
-                  } 
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.balanceDetails}>
-              <View style={styles.balanceItem}>
-                <Text style={styles.balanceItemLabel}>Ingresos</Text>
-                <Text style={[styles.balanceItemAmount, { color: colors.income }]}>
-                  {formatCurrency(monthlyStats.income, settings.currency.symbol)}
-                </Text>
-              </View>
-              <View style={styles.balanceItem}>
-                <Text style={styles.balanceItemLabel}>Gastos</Text>
-                <Text style={[styles.balanceItemAmount, { color: colors.expense }]}>
-                  {formatCurrency(monthlyStats.expense, settings.currency.symbol)}
-                </Text>
-              </View>
-            </View>
           </View>
-        </Card>
-
-        {/* Quick Actions */}
-        <View style={styles.quickActionsContainer} ref={quickActionsRef} collapsable={false}>
-          <TouchableOpacity 
-            style={[styles.quickActionButton, { backgroundColor: colors.income }]}
-            onPress={() => handleOpenAddTransaction('income')}
-          >
-            <Text style={styles.quickActionIcon}>💰</Text>
-            <Text style={styles.quickActionText}>Nuevo Ingreso</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.quickActionButton, { backgroundColor: colors.expense }]}
-            onPress={() => handleOpenAddTransaction('expense')}
-          >
-            <Text style={styles.quickActionIcon}>💸</Text>
-            <Text style={styles.quickActionText}>Nuevo Gasto</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.quickActionButton, { backgroundColor: colors.primary }]}
-            onPress={() => setTransferVisible(true)}
-          >
-            <Text style={styles.quickActionIcon}>↔️</Text>
-            <Text style={styles.quickActionText}>Transferir</Text>
-          </TouchableOpacity>
         </View>
 
-        {/* Recent Transactions */}
-        <View style={styles.recentSection}>
-          <View style={styles.recentHeader}>
-            <Text style={styles.sectionTitle}>Transacciones Recientes</Text>
-            {transactions.length > 5 && (
-              <TouchableOpacity onPress={() => onNavigate?.('Transactions')}>
-                <Text style={styles.seeAllText}>Ver todas</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {loading ? (
-            <Text style={styles.emptyText}>Cargando...</Text>
-          ) : recentTransactions.length === 0 ? (
-            <Card>
-              <Text style={styles.emptyText}>
-                No hay transacciones aún.{'\n'}
-                ¡Comienza agregando una!
-              </Text>
-            </Card>
-          ) : (
-            recentTransactions.map(transaction => (
-              <TransactionItem
-                key={transaction.id}
-                transaction={transaction}
-                onPress={() => handleTransactionPress(transaction)}
-              />
-            ))
-          )}
-        </View>
       </ScrollView>
+
+      {/* Floating Action Button with Menu */}
+      <FabMenu
+        menuItems={fabMenuItems}
+        visible={fabMenuVisible}
+        onToggle={toggleFabMenu}
+      />
 
       {/* Modal de agregar transacción */}
       <Modal
@@ -457,15 +656,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, onNavigate, 
           onClose={() => setTransferVisible(false)}
         />
       </Modal>
-
-      {/* Modal de detalle de transacción */}
-      <TransactionDetailModal
-        visible={detailModalVisible}
-        transaction={selectedTransaction}
-        onDismiss={() => setDetailModalVisible(false)}
-        onEdit={isFeatureEnabled('enableTransactionEdit') ? handleEditTransaction : undefined}
-        onDelete={isFeatureEnabled('enableTransactionDelete') ? handleDeleteTransaction : undefined}
-      />
 
       {/* Diálogo de confirmación de eliminación */}
       <Dialog

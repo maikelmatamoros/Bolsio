@@ -1,7 +1,7 @@
 import { useSettings } from '../context/SettingsContext';
-import { lightColors, darkColors, Colors } from '../constants/colors';
+import { lightColors, darkColors } from '../constants/colors';
 
-export const useThemeColors = (): Colors => {
+export const useThemeColors = () => {
   const { settings } = useSettings();
   return settings.theme === 'dark' ? darkColors : lightColors;
 };

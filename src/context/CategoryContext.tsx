@@ -68,6 +68,7 @@ export const CategoryProvider: React.FC<CategoryProviderProps> = ({ children }) 
 
   // Obtener todas las categorías (predefinidas + personalizadas)
   const getAllCategories = (type: TransactionType): ICategory[] => {
+    if (type === 'transfer') return [];
     const predefined = defaultCategories[type];
     const custom = customCategories[type];
     return [...predefined, ...custom];
@@ -78,6 +79,8 @@ export const CategoryProvider: React.FC<CategoryProviderProps> = ({ children }) 
     category: Omit<ICategory, 'id'>,
     type: TransactionType
   ): Promise<boolean> => {
+    if (type === 'transfer') return false;
+    
     const newCategory: ICategory = {
       ...category,
       id: `custom_${Date.now()}`,
@@ -97,6 +100,8 @@ export const CategoryProvider: React.FC<CategoryProviderProps> = ({ children }) 
     categoryData: Partial<ICategory>,
     type: TransactionType
   ): Promise<boolean> => {
+    if (type === 'transfer') return false;
+    
     const categories = customCategories[type];
     const index = categories.findIndex(c => c.id === id);
     
@@ -118,6 +123,8 @@ export const CategoryProvider: React.FC<CategoryProviderProps> = ({ children }) 
     id: string,
     type: TransactionType
   ): Promise<boolean> => {
+    if (type === 'transfer') return false;
+    
     const updated = {
       ...customCategories,
       [type]: customCategories[type].filter(c => c.id !== id),

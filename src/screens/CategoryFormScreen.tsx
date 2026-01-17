@@ -49,7 +49,7 @@ export const CategoryFormScreen: React.FC<CategoryFormScreenProps> = ({
   const { dialog, hideDialog, confirm } = useDialog();
 
   // Obtener categoría si estamos editando
-  const existingCategory = categoryId
+  const existingCategory = categoryId && type !== 'transfer'
     ? customCategories[type].find(c => c.id === categoryId)
     : null;
 

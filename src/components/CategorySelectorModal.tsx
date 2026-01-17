@@ -29,7 +29,7 @@ export const CategorySelectorModal: React.FC<CategorySelectorModalProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
 
   const allCategories = getAllCategories(type);
-  const predefinedCategories = defaultCategories[type];
+  const predefinedCategories = type !== 'transfer' ? defaultCategories[type] : [];
   const customCategories = allCategories.filter(c => c.id.startsWith('custom_'));
 
   // Filtrar por búsqueda

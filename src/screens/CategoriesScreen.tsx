@@ -13,6 +13,7 @@ import { IconButton, Chip } from 'react-native-paper';
 import { useCategories } from '../context/CategoryContext';
 import { useSettings } from '../context/SettingsContext';
 import { Card } from '../components/common/Card';
+import { FabMenu, FabMenuItem } from '../components/common/FabMenu';
 import { Toast } from '../components/common/Toast';
 import { useToast } from '../hooks/useToast';
 import { lightColors, darkColors } from '../constants/colors';
@@ -33,10 +34,11 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onClose }) =
   const [selectedType, setSelectedType] = useState<TransactionType>('expense');
   const [categoryFormVisible, setCategoryFormVisible] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>();
+  const [fabMenuVisible, setFabMenuVisible] = useState(false);
 
   const allCategories = getAllCategories(selectedType);
-  const predefinedCategories = defaultCategories[selectedType];
-  const customCategoriesList = customCategories[selectedType];
+  const predefinedCategories = selectedType !== 'transfer' ? defaultCategories[selectedType] : [];
+  const customCategoriesList = selectedType !== 'transfer' ? customCategories[selectedType] : [];
 
   const handleAddCategory = () => {
     setSelectedCategoryId(undefined);
@@ -57,6 +59,31 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onClose }) =
     setCategoryFormVisible(false);
     setSelectedCategoryId(undefined);
   };
+
+  // FAB Menu Items
+  const fabMenuItems: FabMenuItem[] = [
+    {
+      key: 'add-category',
+      icon: 'add-circle',
+      label: 'Nueva Categoría',
+      onPress: handleAddCategory,
+      backgroundColor: colors.primary,
+    },
+    {
+      key: 'switch-income',
+      icon: 'trending-up',
+      label: 'Ingresos',
+      onPress: () => setSelectedType('income'),
+      backgroundColor: colors.income,
+    },
+    {
+      key: 'switch-expense',
+      icon: 'trending-down',
+      label: 'Gastos',
+      onPress: () => setSelectedType('expense'),
+      backgroundColor: colors.expense,
+    },
+  ];
 
   const styles = StyleSheet.create({
     container: {
@@ -289,6 +316,14 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onClose }) =
           </View>
         </View>
       </ScrollView>
+
+      {/* Floating Action Button with Menu */}
+      <FabMenu
+        menuItems={fabMenuItems}
+        visible={fabMenuVisible}
+        onToggle={() => setFabMenuVisible(!fabMenuVisible)}
+        fabIcon="menu"
+      />
 
       {/* Toast de notificaciones */}
       <Toast

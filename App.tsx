@@ -128,34 +128,21 @@ function AppContent() {
       backgroundColor: colors.surface,
       borderTopWidth: 1,
       borderTopColor: colors.outline,
-      paddingTop: 6,
-      paddingBottom: Math.max(insets.bottom, 8),
-      elevation: 8,
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: -2,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 3,
+      paddingTop: 12,
+      paddingBottom: Math.max(insets.bottom, 12),
     },
     tabButton: {
       flex: 1,
       justifyContent: 'center' as const,
       alignItems: 'center' as const,
-      paddingVertical: 6,
+      paddingVertical: 8,
     },
-    tabIconContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
+    tabIcon: {
+      marginBottom: 4,
     },
     tabLabel: {
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: '600' as const,
-      marginTop: 2,
     },
   };
 
@@ -180,13 +167,10 @@ function AppContent() {
           onPress={() => setCurrentScreen('Home')}
           activeOpacity={0.7}
         >
-          <View style={[
-            dynamicStyles.tabIconContainer,
-            currentScreen === 'Home' && { backgroundColor: colors.primaryContainer }
-          ]}>
+          <View style={dynamicStyles.tabIcon}>
             <Ionicons
               name={currentScreen === 'Home' ? 'home' : 'home-outline'}
-              size={22}
+              size={24}
               color={currentScreen === 'Home' ? colors.primary : colors.textMuted}
             />
           </View>
@@ -203,15 +187,11 @@ function AppContent() {
           style={dynamicStyles.tabButton}
           onPress={() => setCurrentScreen('Transactions')}
           activeOpacity={0.7}
-          collapsable={false}
         >
-          <View style={[
-            dynamicStyles.tabIconContainer,
-            currentScreen === 'Transactions' && { backgroundColor: colors.primaryContainer }
-          ]}>
+          <View style={dynamicStyles.tabIcon}>
             <Ionicons
               name={currentScreen === 'Transactions' ? 'list' : 'list-outline'}
-              size={22}
+              size={24}
               color={currentScreen === 'Transactions' ? colors.primary : colors.textMuted}
             />
           </View>
@@ -228,15 +208,11 @@ function AppContent() {
           style={dynamicStyles.tabButton}
           onPress={() => setCurrentScreen('Settings')}
           activeOpacity={0.7}
-          collapsable={false}
         >
-          <View style={[
-            dynamicStyles.tabIconContainer,
-            currentScreen === 'Settings' && { backgroundColor: colors.primaryContainer }
-          ]}>
+          <View style={dynamicStyles.tabIcon}>
             <Ionicons
               name={currentScreen === 'Settings' ? 'settings' : 'settings-outline'}
-              size={22}
+              size={24}
               color={currentScreen === 'Settings' ? colors.primary : colors.textMuted}
             />
           </View>

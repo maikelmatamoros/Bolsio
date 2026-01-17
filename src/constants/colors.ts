@@ -1,136 +1,135 @@
-// Paleta de Colores Material Design 3 - Indigo Professional
-// Generada siguiendo el sistema oficial de MD3 con armonía garantizada
+// Paleta Minimalista - Colores neutros y suaves para un diseño clean
 
 // TEMA CLARO
 export const lightColors = {
-  // Colores Principales (MD3 - Primary)
-  primary: '#6750A4',        // Indigo MD3 baseline
+  // Colores Principales (Neutros)
+  primary: '#6366F1',        // Indigo suave
   onPrimary: '#FFFFFF',      
-  primaryContainer: '#EADDFF', 
-  onPrimaryContainer: '#21005D', 
+  primaryContainer: '#EEF2FF', 
+  onPrimaryContainer: '#1E1B4B', 
   
-  // Secundario (MD3 - Secondary)
-  secondary: '#625B71',      // Purple gray complementario
+  // Secundario (Grises)
+  secondary: '#64748B',      // Slate
   onSecondary: '#FFFFFF',    
-  secondaryContainer: '#E8DEF8', 
-  onSecondaryContainer: '#1D192B', 
+  secondaryContainer: '#F1F5F9', 
+  onSecondaryContainer: '#0F172A', 
   
-  // Terciario (MD3 - Tertiary) 
-  tertiary: '#7D5260',       // Marrón rosado
+  // Terciario (Neutro)
+  tertiary: '#94A3B8',       
   onTertiary: '#FFFFFF',
-  tertiaryContainer: '#FFD8E4',
-  onTertiaryContainer: '#31111D',
+  tertiaryContainer: '#F8FAFC',
+  onTertiaryContainer: '#334155',
   
-  // Fondos y Superficies (MD3)
-  background: '#FFFBFE',     // Ligeramente cálido
-  onBackground: '#1C1B1F',   
-  surface: '#FFFBFE',        
-  onSurface: '#1C1B1F',      
-  surfaceVariant: '#E7E0EC', 
-  onSurfaceVariant: '#49454F', 
-  surfaceHover: '#F3EDF7',   
+  // Fondos y Superficies (Minimalistas)
+  background: '#FFFFFF',     
+  onBackground: '#1E293B',   
+  surface: '#FFFFFF',        
+  onSurface: '#1E293B',      
+  surfaceVariant: '#F8FAFC', 
+  onSurfaceVariant: '#64748B', 
+  surfaceHover: '#F1F5F9',   
   
-  // Colores de Transacciones (manteniendo semántica clara)
-  income: '#4CAF50',         // Verde Material
-  expense: '#F44336',        // Rojo Material
+  // Colores de Transacciones (Suaves)
+  income: '#10B981',         // Emerald suave
+  expense: '#EF4444',        // Red suave
   
-  // Estados (MD3)
-  error: '#B3261E',          
+  // Estados (Neutros)
+  error: '#DC2626',          
   onError: '#FFFFFF',        
-  errorContainer: '#F9DEDC', 
-  onErrorContainer: '#410E0B', 
+  errorContainer: '#FEF2F2', 
+  onErrorContainer: '#991B1B', 
   
-  success: '#4CAF50',        
-  warning: '#F9A825',        
-  info: '#2196F3',           
+  success: '#10B981',        
+  warning: '#F59E0B',        
+  info: '#3B82F6',           
   
-  // Textos (basados en onSurface)
-  text: '#1C1B1F',           
-  textLight: '#49454F',      
-  textMuted: '#79747E',      
+  // Textos (Jerarquía clara)
+  text: '#1E293B',           
+  textLight: '#64748B',      
+  textMuted: '#94A3B8',      
   
   // Neutros
   white: '#FFFFFF',
   black: '#000000',
   
-  // Bordes y Divisores (MD3)
-  outline: '#79747E',        
-  outlineVariant: '#CAC4D0', 
-  border: '#CAC4D0',         
-  borderLight: '#E7E0EC',    
+  // Bordes y Divisores (Minimalistas)
+  outline: '#E2E8F0',        
+  outlineVariant: '#CBD5E1', 
+  border: '#E2E8F0',         
+  borderLight: '#F1F5F9',    
   
-  // Sombras
+  // Sombras (Suaves)
   shadow: '#000000',
   shadowDark: '#000000',
   
   // Overlays
   overlay: 'rgba(0, 0, 0, 0.5)',
   
-  // Gradientes
-  gradientStart: '#6750A4',
-  gradientEnd: '#625B71',
+  // Gradientes (Subtiles)
+  gradientStart: '#EEF2FF',
+  gradientEnd: '#F1F5F9',
   
   // Alias para compatibilidad
-  danger: '#B3261E',
+  danger: '#DC2626',
 } as const;
 
 // TEMA OSCURO
 export const darkColors = {
-  // Colores Principales (MD3 Dark - Primary)
-  primary: '#D0BCFF',        // Indigo claro para contraste
-  onPrimary: '#381E72',      
-  primaryContainer: '#4F378B', 
-  onPrimaryContainer: '#EADDFF', 
+  // Colores Principales (Neutros oscuros)
+  primary: '#818CF8',        // Indigo claro
+  onPrimary: '#1E1B4B',      
+  primaryContainer: '#312E81', 
+  onPrimaryContainer: '#EEF2FF', 
   
-  // Secundario (MD3 Dark - Secondary)
-  secondary: '#CCC2DC',      
-  onSecondary: '#332D41',    
-  secondaryContainer: '#4A4458', 
-  onSecondaryContainer: '#E8DEF8', 
+  // Secundario (Grises oscuros)
+  secondary: '#94A3B8',      
+  onSecondary: '#0F172A',    
+  secondaryContainer: '#334155', 
+  onSecondaryContainer: '#F1F5F9', 
   
-  // Terciario (MD3 Dark - Tertiary) 
-  tertiary: '#EFB8C8',       
-  onTertiary: '#492532',
-  tertiaryContainer: '#633B48',
-  onTertiaryContainer: '#FFD8E4',
+  // Terciario (Neutro oscuro)
+  tertiary: '#64748B',       
+  onTertiary: '#0F172A',
+  tertiaryContainer: '#1E293B',
+  onTertiaryContainer: '#CBD5E1',
   
-  // Fondos y Superficies (MD3 Dark)
-  background: '#1C1B1F',     
-  onBackground: '#E6E1E5',   
-  surface: '#1C1B1F',        
-  onSurface: '#E6E1E5',      
-  surfaceVariant: '#49454F', 
-  onSurfaceVariant: '#CAC4D0', 
-  surfaceHover: '#2B2930',   
+  // Fondos y Superficies (Minimalistas oscuros)
+  background: '#0F172A',     
+  onBackground: '#F1F5F9',   
+  surface: '#1E293B',        
+  onSurface: '#F1F5F9',      
+  surfaceVariant: '#334155', 
+  onSurfaceVariant: '#94A3B8', 
+  surfaceHover: '#334155',   
   
-  // Colores de Transacciones
-  income: '#81C784',         // Verde más suave para dark
-  expense: '#E57373',        // Rojo más suave para dark
+  // Colores de Transacciones (Suaves oscuros)
+  income: '#34D399',         // Emerald claro
+  expense: '#F87171',        // Red claro
   
-  // Estados (MD3 Dark)
-  error: '#F2B8B5',          
-  onError: '#601410',        
-  errorContainer: '#8C1D18', 
-  onErrorContainer: '#F9DEDC', 
+  // Estados (Neutros oscuros)
+  error: '#EF4444',          
+  onError: '#FFFFFF',        
+  errorContainer: '#451A16', 
+  onErrorContainer: '#FECACA', 
   
-  success: '#81C784',        
-  warning: '#FFD54F',        
-  info: '#64B5F6',           
+  success: '#34D399',        
+  warning: '#FBBF24',        
+  info: '#60A5FA',           
   
-  // Textos
-  text: '#E6E1E5',           
-  textLight: '#CAC4D0',      
-  textMuted: '#938F99',      
+  // Textos (Jerarquía clara oscura)
+  text: '#F1F5F9',           
+  textLight: '#CBD5E1',      
+  textMuted: '#64748B',      
   
   // Neutros
   white: '#FFFFFF',
   black: '#000000',
   
-  // Bordes y Divisores (MD3 Dark)
-  outline: '#938F99',        
-  outlineVariant: '#49454F', 
-  border: '#49454F',         
-  borderLight: '#2B2930',    
+  // Bordes y Divisores (Minimalistas oscuros)
+  outline: '#475569',        
+  outlineVariant: '#334155', 
+  border: '#475569',         
+  borderLight: '#334155',    
   
   // Sombras
   shadow: '#000000',
@@ -139,12 +138,12 @@ export const darkColors = {
   // Overlays
   overlay: 'rgba(0, 0, 0, 0.7)',
   
-  // Gradientes
-  gradientStart: '#D0BCFF',
-  gradientEnd: '#CCC2DC',
+  // Gradientes (Subtiles oscuros)
+  gradientStart: '#312E81',
+  gradientEnd: '#334155',
   
   // Alias para compatibilidad
-  danger: '#F2B8B5',
+  danger: '#EF4444',
 } as const;
 
 // Exportar el tema claro como default para compatibilidad
