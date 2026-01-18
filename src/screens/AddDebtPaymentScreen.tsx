@@ -94,8 +94,16 @@ export default function AddDebtPaymentScreen({ debtId, onNavigate }: AddDebtPaym
         description: description.trim() || 'Pago parcial',
       });
 
-      showToast('Pago registrado correctamente', 'success');
-      onNavigate?.('Debts');
+      showToast(
+        'Pago registrado correctamente',
+        'success',
+        'OK',
+        () => {
+          // Navegar al tab correspondiente según el tipo de deuda
+          onNavigate?.('Debts', { selectedTab: debt.type });
+        },
+        false // No auto-hide
+      );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'No se pudo registrar el pago';
       showToast(errorMessage, 'error');
@@ -268,7 +276,15 @@ export default function AddDebtPaymentScreen({ debtId, onNavigate }: AddDebtPaym
           </Text>
         </TouchableOpacity>
       </View>
-      <Toast visible={toast.visible} message={toast.message} type={toast.type} onHide={hideToast} />
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+        actionButtonText={toast.actionButtonText}
+        onAction={toast.onAction}
+        autoHide={toast.autoHide}
+      />
     </ScrollView>
   );
 }

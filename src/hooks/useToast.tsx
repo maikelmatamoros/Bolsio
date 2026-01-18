@@ -5,6 +5,9 @@ interface ToastState {
   visible: boolean;
   message: string;
   type: ToastType;
+  actionButtonText?: string;
+  onAction?: () => void;
+  autoHide?: boolean;
 }
 
 export const useToast = () => {
@@ -14,11 +17,14 @@ export const useToast = () => {
     type: 'success',
   });
 
-  const showToast = useCallback((message: string, type: ToastType = 'success') => {
+  const showToast = useCallback((message: string, type: ToastType = 'success', actionButtonText?: string, onAction?: () => void, autoHide: boolean = true) => {
     setToast({
       visible: true,
       message,
       type,
+      actionButtonText,
+      onAction,
+      autoHide,
     });
   }, []);
 

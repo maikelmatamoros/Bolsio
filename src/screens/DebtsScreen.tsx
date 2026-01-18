@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -24,9 +24,10 @@ import { AddDebtScreen } from './AddDebtScreen';
 
 interface DebtsScreenProps {
   onNavigate?: (screen: string, params?: any) => void;
+  selectedTab?: 'owed_to_me' | 'owed_by_me';
 }
 
-export const DebtsScreen: React.FC<DebtsScreenProps> = ({ onNavigate }) => {
+export const DebtsScreen: React.FC<DebtsScreenProps> = ({ onNavigate, selectedTab: initialSelectedTab }) => {
   const { debts, getTotalOwedToMe, getTotalOwedByMe, markDebtAsPaid, deleteDebt, getDebtBalance, getPaymentsForDebt } = useDebts();
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
@@ -38,6 +39,13 @@ export const DebtsScreen: React.FC<DebtsScreenProps> = ({ onNavigate }) => {
   const [fabMenuVisible, setFabMenuVisible] = useState(false);
   const [addDebtVisible, setAddDebtVisible] = useState(false);
   const [initialDebtType, setInitialDebtType] = useState<DebtType>('owed_to_me');
+
+  // Establecer el tab inicial cuando se recibe como prop
+  useEffect(() => {
+    if (initialSelectedTab) {
+      setSelectedTab(initialSelectedTab);
+    }
+  }, [initialSelectedTab]);
 
   const totalOwedToMe = getTotalOwedToMe();
   const totalOwedByMe = getTotalOwedByMe();

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, Animated, Text, View } from 'react-native';
+import { StyleSheet, Animated, Text, View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettings } from '../../context/SettingsContext';
@@ -13,6 +13,9 @@ interface ToastProps {
   type?: ToastType;
   duration?: number;
   onHide: () => void;
+  actionButtonText?: string;
+  onAction?: () => void;
+  autoHide?: boolean;
 }
 
 export const Toast: React.FC<ToastProps> = ({
@@ -21,6 +24,9 @@ export const Toast: React.FC<ToastProps> = ({
   type = 'success',
   duration = 3000,
   onHide,
+  actionButtonText,
+  onAction,
+  autoHide = true,
 }) => {
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
@@ -45,12 +51,17 @@ export const Toast: React.FC<ToastProps> = ({
         }),
       ]).start();
 
-      // Auto-hide después del duration
-      const timer = setTimeout(() => {
-        hideToast();
-      }, duration);
+      // Auto-hide después del duration solo si está habilitado y no hay botón de acción
+      let timer: NodeJS.Timeout | undefined;
+      if (autoHide && !actionButtonText) {
+        timer = setTimeout(() => {
+          hideToast();
+        }, duration);
+      }
 
-      return () => clearTimeout(timer);
+      return () => {
+        if (timer) clearTimeout(timer);
+      };
     }
   }, [visible]);
 
@@ -145,6 +156,22 @@ export const Toast: React.FC<ToastProps> = ({
       fontWeight: '600',
       color: settings.theme === 'dark' ? colors.white : colors.text,
     },
+    messageWithButton: {
+      marginRight: 12,
+    },
+    actionButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+      minWidth: 60,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    actionButtonText: {
+      color: colors.white,
+      fontSize: 14,
+      fontWeight: '600',
+    },
   });
 
   return (
@@ -161,7 +188,20 @@ export const Toast: React.FC<ToastProps> = ({
         <View style={styles.iconContainer}>
           <Ionicons name={config.icon} size={24} color={colors.white} />
         </View>
-        <Text style={styles.message}>{message}</Text>
+        <Text style={[styles.message, actionButtonText ? styles.messageWithButton : null]}>{message}</Text>
+        {actionButtonText && (
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: config.color }]}
+            onPress={() => {
+              if (onAction) {
+                onAction();
+              }
+              hideToast();
+            }}
+          >
+            <Text style={styles.actionButtonText}>{actionButtonText}</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </Animated.View>
   );

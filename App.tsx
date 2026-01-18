@@ -172,7 +172,7 @@ function AppContent() {
           />
         )}
         {currentScreen === 'Transactions' && <TransactionsScreen />}
-        {currentScreen === 'Debts' && <DebtsScreen onNavigate={navigate} />}
+        {currentScreen === 'Debts' && <DebtsScreen onNavigate={navigate} selectedTab={navigationParams?.selectedTab} />}
         {currentScreen === 'AddDebtPayment' && <AddDebtPaymentScreen debtId={navigationParams?.debtId} onNavigate={navigate} />}
         {currentScreen === 'DebtPaymentHistory' && <DebtPaymentHistoryScreen debtId={navigationParams?.debtId} onNavigate={navigate} />}
         {currentScreen === 'Settings' && <SettingsScreen />}
