@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useAccounts } from '../context/AccountContext';
 import { useTransactions } from '../context/TransactionContext';
+import { useDebts } from '../context/DebtContext';
 import { useSettings } from '../context/SettingsContext';
 import { useTutorial } from '../hooks/useTutorial';
 import { Dialog } from '../components/common/Dialog';
@@ -32,6 +33,7 @@ interface SettingsScreenProps {
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
   const { accounts, getTotalBalance, loading, clearAllAccounts } = useAccounts();
   const { transactions, loadTransactions } = useTransactions();
+  const { loadDebts } = useDebts();
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
   const { toast, showToast, hideToast } = useToast();
@@ -70,6 +72,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
         '@Bolsio:transactions',
         '@Bolsio:accounts',
         '@Bolsio:customCategories',
+        '@Bolsio:debts',
+        '@Bolsio:debtPayments',
         // Mantener configuraciones
         // '@Bolsio:settings',
       ]);
@@ -77,6 +81,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
       // Recargar datos
       await loadTransactions();
       await clearAllAccounts();
+      await loadDebts();
 
       showToast('Todos los datos han sido eliminados', 'success');
       setDeleteAllDialogVisible(false);
