@@ -1,13 +1,17 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DebtContextType, IDebt, DebtJSON, DebtType, DebtStatus } from '../types';
+import { DebtContextType, IDebt, DebtJSON, DebtType, DebtStatus, IDebtPayment, DebtPaymentJSON } from '../types';
 
 const DebtContext = createContext<DebtContextType | undefined>(undefined);
 
+export { DebtContext };
+
 const DEBTS_STORAGE_KEY = '@Bolsio:debts';
+const DEBT_PAYMENTS_STORAGE_KEY = '@Bolsio:debtPayments';
 
 export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [debts, setDebts] = useState<IDebt[]>([]);
+  const [debtPayments, setDebtPayments] = useState<IDebtPayment[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Cargar deudas desde AsyncStorage
@@ -36,14 +40,49 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const saveDebts = async (debtsToSave: IDebt[]) => {
     try {
       const debtsJSON: DebtJSON[] = debtsToSave.map(debt => ({
-        ...debt,
+        id: debt.id,
+        type: debt.type,
+        person: debt.person,
+        amount: debt.amount,
+        description: debt.description,
         date: debt.date.toISOString(),
         dueDate: debt.dueDate?.toISOString(),
+        status: debt.status,
         paidDate: debt.paidDate?.toISOString(),
       }));
       await AsyncStorage.setItem(DEBTS_STORAGE_KEY, JSON.stringify(debtsJSON));
     } catch (error) {
       console.error('Error saving debts:', error);
+    }
+  };
+
+  // Cargar pagos desde AsyncStorage
+  const loadDebtPayments = async () => {
+    try {
+      const storedPayments = await AsyncStorage.getItem(DEBT_PAYMENTS_STORAGE_KEY);
+      if (storedPayments) {
+        const parsedPayments: DebtPaymentJSON[] = JSON.parse(storedPayments);
+        const paymentsWithDates = parsedPayments.map(payment => ({
+          ...payment,
+          date: new Date(payment.date),
+        }));
+        setDebtPayments(paymentsWithDates);
+      }
+    } catch (error) {
+      console.error('Error loading debt payments:', error);
+    }
+  };
+
+  // Guardar pagos en AsyncStorage
+  const saveDebtPayments = async (paymentsToSave: IDebtPayment[]) => {
+    try {
+      const paymentsJSON: DebtPaymentJSON[] = paymentsToSave.map(payment => ({
+        ...payment,
+        date: payment.date.toISOString(),
+      }));
+      await AsyncStorage.setItem(DEBT_PAYMENTS_STORAGE_KEY, JSON.stringify(paymentsJSON));
+    } catch (error) {
+      console.error('Error saving debt payments:', error);
     }
   };
 
@@ -100,35 +139,115 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Marcar deuda como pagada/cobrada
+  // Marcar deuda como pagada
   const markDebtAsPaid = async (id: string): Promise<boolean> => {
+    return updateDebt(id, { status: 'paid', paidDate: new Date() });
+  };
+
+  // Agregar pago parcial
+  const addDebtPayment = async (paymentData: Partial<IDebtPayment>): Promise<boolean> => {
     try {
-      const updatedDebts = debts.map(debt =>
-        debt.id === id
-          ? { ...debt, status: 'paid' as DebtStatus, paidDate: new Date() }
-          : debt
-      );
-      setDebts(updatedDebts);
-      await saveDebts(updatedDebts);
+      const newPayment: IDebtPayment = {
+        id: Date.now().toString(),
+        debtId: paymentData.debtId || '',
+        amount: paymentData.amount || 0,
+        date: paymentData.date || new Date(),
+        description: paymentData.description,
+      };
+
+      const updatedPayments = [...debtPayments, newPayment];
+      setDebtPayments(updatedPayments);
+      await saveDebtPayments(updatedPayments);
+
+      // Verificar si la deuda está completamente pagada
+      const debt = debts.find(d => d.id === newPayment.debtId);
+      if (debt) {
+        const totalPaid = getTotalPaidForDebt(debt.id) + newPayment.amount;
+        if (totalPaid >= debt.amount && debt.status === 'pending') {
+          await markDebtAsPaid(debt.id);
+        }
+      }
+
       return true;
     } catch (error) {
-      console.error('Error marking debt as paid:', error);
+      console.error('Error adding debt payment:', error);
       return false;
     }
   };
 
-  // Calcular total que me deben
-  const getTotalOwedToMe = (): number => {
-    return debts
-      .filter(debt => debt.type === 'owed_to_me' && debt.status === 'pending')
-      .reduce((total, debt) => total + debt.amount, 0);
+  // Eliminar pago
+  const deleteDebtPayment = async (paymentId: string): Promise<boolean> => {
+    try {
+      const payment = debtPayments.find(p => p.id === paymentId);
+      const updatedPayments = debtPayments.filter(p => p.id !== paymentId);
+      setDebtPayments(updatedPayments);
+      await saveDebtPayments(updatedPayments);
+
+      // Si se elimina un pago, verificar si la deuda vuelve a estar pendiente
+      if (payment) {
+        const debt = debts.find(d => d.id === payment.debtId);
+        if (debt && debt.status === 'paid') {
+          const totalPaid = getTotalPaidForDebt(debt.id);
+          if (totalPaid < debt.amount) {
+            // Marcar como pendiente nuevamente
+            const updatedDebts = debts.map(d =>
+              d.id === debt.id
+                ? { ...d, status: 'pending' as DebtStatus, paidDate: undefined }
+                : d
+            );
+            setDebts(updatedDebts);
+            await saveDebts(updatedDebts);
+          }
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting debt payment:', error);
+      return false;
+    }
   };
 
-  // Calcular total que debo
+  // Calcular total que me deben (considerando pagos parciales)
+  const getTotalOwedToMe = (): number => {
+    return debts
+      .filter(debt => debt.type === 'owed_to_me')
+      .reduce((total, debt) => {
+        const totalPaid = getTotalPaidForDebt(debt.id);
+        return total + Math.max(0, debt.amount - totalPaid);
+      }, 0);
+  };
+
+  // Calcular total que debo (considerando pagos parciales)
   const getTotalOwedByMe = (): number => {
     return debts
-      .filter(debt => debt.type === 'owed_by_me' && debt.status === 'pending')
-      .reduce((total, debt) => total + debt.amount, 0);
+      .filter(debt => debt.type === 'owed_by_me')
+      .reduce((total, debt) => {
+        const totalPaid = getTotalPaidForDebt(debt.id);
+        return total + Math.max(0, debt.amount - totalPaid);
+      }, 0);
+  };
+
+  // Obtener total pagado para una deuda específica
+  const getTotalPaidForDebt = (debtId: string): number => {
+    return debtPayments
+      .filter(payment => payment.debtId === debtId)
+      .reduce((total, payment) => total + payment.amount, 0);
+  };
+
+  // Obtener pagos para una deuda específica
+  const getPaymentsForDebt = (debtId: string): IDebtPayment[] => {
+    return debtPayments
+      .filter(payment => payment.debtId === debtId)
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
+  };
+
+  // Obtener saldo pendiente de una deuda
+  const getDebtBalance = (debtId: string): number => {
+    const debt = debts.find(d => d.id === debtId);
+    if (!debt) return 0;
+    const totalPaid = getTotalPaidForDebt(debtId);
+    return Math.max(0, debt.amount - totalPaid);
   };
 
   // Obtener deudas por tipo
@@ -141,21 +260,28 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return debts.filter(debt => debt.status === status);
   };
 
-  // Cargar deudas al iniciar
+  // Cargar deudas y pagos al iniciar
   useEffect(() => {
     loadDebts();
+    loadDebtPayments();
   }, []);
 
   const value: DebtContextType = {
     debts,
+    debtPayments,
     loading,
     addDebt,
     deleteDebt,
     updateDebt,
     markDebtAsPaid,
     loadDebts,
+    addDebtPayment,
+    deleteDebtPayment,
     getTotalOwedToMe,
     getTotalOwedByMe,
+    getTotalPaidForDebt,
+    getPaymentsForDebt,
+    getDebtBalance,
     getDebtsByType,
     getDebtsByStatus,
   };

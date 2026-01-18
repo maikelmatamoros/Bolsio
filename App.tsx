@@ -10,6 +10,8 @@ import { HomeScreen } from './src/screens/HomeScreen';
 import { TransactionsScreen } from './src/screens/TransactionsScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { DebtsScreen } from './src/screens/DebtsScreen';
+import AddDebtPaymentScreen from './src/screens/AddDebtPaymentScreen';
+import DebtPaymentHistoryScreen from './src/screens/DebtPaymentHistoryScreen';
 import { InteractiveTutorial, TutorialStep } from './src/components/onboarding/InteractiveTutorial';
 import { useTutorial } from './src/hooks/useTutorial';
 import { lightColors, darkColors } from './src/constants/colors';
@@ -78,7 +80,13 @@ const darkTheme = {
 
 // Componente interno que usa los insets
 function AppContent() {
-  const [currentScreen, setCurrentScreen] = useState<'Home' | 'Transactions' | 'Debts' | 'Settings'>('Home');
+  const [currentScreen, setCurrentScreen] = useState<'Home' | 'Transactions' | 'Debts' | 'Settings' | 'AddDebtPayment' | 'DebtPaymentHistory'>('Home');
+  const [navigationParams, setNavigationParams] = useState<any>(null);
+
+  const navigate = (screen: string, params?: any) => {
+    setCurrentScreen(screen as typeof currentScreen);
+    setNavigationParams(params);
+  };
   const insets = useSafeAreaInsets();
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
@@ -102,6 +110,11 @@ function AppContent() {
       if (currentScreen === 'Settings') {
         // Si estamos en Settings, volver a Home
         setCurrentScreen('Home');
+        return true; // Prevenir comportamiento por defecto
+      }
+      if (currentScreen === 'AddDebtPayment' || currentScreen === 'DebtPaymentHistory') {
+        // Si estamos en pantallas de pagos, volver a Debts
+        setCurrentScreen('Debts');
         return true; // Prevenir comportamiento por defecto
       }
       // Si estamos en Home, permitir salir de la app
@@ -154,12 +167,14 @@ function AppContent() {
       <View style={dynamicStyles.content}>
         {currentScreen === 'Home' && (
           <HomeScreen
-            onNavigate={(screen) => setCurrentScreen(screen as 'Home' | 'Transactions' | 'Debts' | 'Settings')}
+            onNavigate={(screen, params) => navigate(screen as typeof currentScreen, params)}
             quickActionsRef={quickActionsRef}
           />
         )}
         {currentScreen === 'Transactions' && <TransactionsScreen />}
-        {currentScreen === 'Debts' && <DebtsScreen />}
+        {currentScreen === 'Debts' && <DebtsScreen onNavigate={navigate} />}
+        {currentScreen === 'AddDebtPayment' && <AddDebtPaymentScreen debtId={navigationParams?.debtId} onNavigate={navigate} />}
+        {currentScreen === 'DebtPaymentHistory' && <DebtPaymentHistoryScreen debtId={navigationParams?.debtId} onNavigate={navigate} />}
         {currentScreen === 'Settings' && <SettingsScreen />}
       </View>
       

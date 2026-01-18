@@ -71,6 +71,9 @@ export const lightColors = {
   
   // Alias para compatibilidad
   danger: '#DC2626',
+  card: '#FFFFFF',
+  textSecondary: '#64748B',
+  buttonText: '#FFFFFF',
 } as const;
 
 // TEMA OSCURO
@@ -144,6 +147,9 @@ export const darkColors = {
   
   // Alias para compatibilidad
   danger: '#EF4444',
+  card: '#1E293B',
+  textSecondary: '#94A3B8',
+  buttonText: '#1E1B4B',
 } as const;
 
 // Exportar el tema claro como default para compatibilidad

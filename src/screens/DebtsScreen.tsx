@@ -22,8 +22,12 @@ import { useToast } from '../hooks/useToast';
 import { FabMenu, FabMenuItem } from '../components/common/FabMenu';
 import { AddDebtScreen } from './AddDebtScreen';
 
-export const DebtsScreen: React.FC = () => {
-  const { debts, getTotalOwedToMe, getTotalOwedByMe, markDebtAsPaid, deleteDebt } = useDebts();
+interface DebtsScreenProps {
+  onNavigate?: (screen: string, params?: any) => void;
+}
+
+export const DebtsScreen: React.FC<DebtsScreenProps> = ({ onNavigate }) => {
+  const { debts, getTotalOwedToMe, getTotalOwedByMe, markDebtAsPaid, deleteDebt, getDebtBalance, getPaymentsForDebt } = useDebts();
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
   const { toast, showToast, hideToast } = useToast();
@@ -39,6 +43,11 @@ export const DebtsScreen: React.FC = () => {
   const totalOwedByMe = getTotalOwedByMe();
 
   const filteredDebts = debts.filter(debt => debt.type === selectedTab);
+
+  // Función para determinar si una deuda está pendiente (tiene saldo por pagar/cobrar)
+  const isDebtPending = (debt: IDebt): boolean => {
+    return getDebtBalance(debt.id) > 0;
+  };
 
   const toggleFabMenu = () => {
     setFabMenuVisible(!fabMenuVisible);
@@ -131,11 +140,18 @@ export const DebtsScreen: React.FC = () => {
             }
           ]}>
             {item.type === 'owed_to_me' ? '+' : '-'}
-            {formatCurrency(item.amount, settings.currency.symbol)}
+            {formatCurrency(getDebtBalance(item.id), settings.currency.symbol)}
           </Text>
-          {item.status === 'paid' && (
+          {getDebtBalance(item.id) === 0 && (
             <View style={[styles.statusBadge, { backgroundColor: colors.success }]}>
-              <Text style={styles.statusText}>Pagada</Text>
+              <Text style={styles.statusText}>Completada</Text>
+            </View>
+          )}
+          {getPaymentsForDebt(item.id).length > 0 && getDebtBalance(item.id) > 0 && (
+            <View style={[styles.statusBadge, { backgroundColor: colors.info }]}>
+              <Text style={styles.statusText}>
+                {getPaymentsForDebt(item.id).length} pago{getPaymentsForDebt(item.id).length !== 1 ? 's' : ''}
+              </Text>
             </View>
           )}
         </View>
@@ -156,18 +172,32 @@ export const DebtsScreen: React.FC = () => {
         </View>
       )}
 
-      {item.status === 'pending' && (
+      {getDebtBalance(item.id) > 0 && (
         <View style={styles.actionsContainer}>
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: colors.primary }]}
-            onPress={() => handleMarkAsPaid(item)}
+            onPress={() => {
+              onNavigate?.('AddDebtPayment', { debtId: item.id });
+            }}
             activeOpacity={0.7}
           >
-            <Ionicons name="checkmark" size={16} color={colors.onPrimary} />
+            <Ionicons name="add-circle" size={16} color={colors.onPrimary} />
             <Text style={[styles.actionButtonText, { color: colors.onPrimary }]}>
-              {item.type === 'owed_to_me' ? 'Marcar como cobrada' : 'Marcar como pagada'}
+              Agregar Pago
             </Text>
           </TouchableOpacity>
+
+          {getPaymentsForDebt(item.id).length > 0 && (
+            <TouchableOpacity
+              style={[styles.historyButton]}
+              onPress={() => {
+                onNavigate?.('DebtPaymentHistory', { debtId: item.id });
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="time-outline" size={16} color={colors.onSurfaceVariant} />
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={[styles.deleteButton]}
@@ -179,6 +209,15 @@ export const DebtsScreen: React.FC = () => {
           >
             <Ionicons name="trash-outline" size={16} color={colors.error} />
           </TouchableOpacity>
+        </View>
+      )}
+
+      {getDebtBalance(item.id) === 0 && (
+        <View style={styles.completedContainer}>
+          <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+          <Text style={[styles.completedText, { color: colors.success }]}>
+            {item.type === 'owed_to_me' ? 'Completamente cobrada' : 'Completamente pagada'}
+          </Text>
         </View>
       )}
     </View>
@@ -339,8 +378,23 @@ export const DebtsScreen: React.FC = () => {
       fontWeight: '500',
       marginLeft: 4,
     },
+    historyButton: {
+      padding: 8,
+      marginRight: 8,
+    },
     deleteButton: {
       padding: 8,
+    },
+    completedContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 8,
+    },
+    completedText: {
+      fontSize: 14,
+      fontWeight: '500',
+      marginLeft: 6,
     },
     emptyContainer: {
       flex: 1,
@@ -394,7 +448,7 @@ export const DebtsScreen: React.FC = () => {
             activeOpacity={0.7}
           >
             <Text style={[styles.tabText, selectedTab === 'owed_to_me' && styles.tabTextActive]}>
-              Me deben ({debts.filter(d => d.type === 'owed_to_me' && d.status === 'pending').length})
+              Me deben ({debts.filter(d => d.type === 'owed_to_me' && isDebtPending(d)).length})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -403,7 +457,7 @@ export const DebtsScreen: React.FC = () => {
             activeOpacity={0.7}
           >
             <Text style={[styles.tabText, selectedTab === 'owed_by_me' && styles.tabTextActive]}>
-              Debo ({debts.filter(d => d.type === 'owed_by_me' && d.status === 'pending').length})
+              Debo ({debts.filter(d => d.type === 'owed_by_me' && isDebtPending(d)).length})
             </Text>
           </TouchableOpacity>
         </View>

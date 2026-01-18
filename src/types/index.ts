@@ -88,7 +88,9 @@ export interface TransactionContextType {
   getTransactionsByAccount: (accountId: string) => ITransaction[];
 }
 
-// Tipos para el contexto de cuentas
+// Tipos para deudas
+export type DebtType = 'owed_to_me' | 'owed_by_me';
+export type DebtStatus = 'pending' | 'paid' | 'cancelled';
 export interface AccountContextType {
   accounts: IAccount[];
   loading: boolean;
@@ -102,9 +104,22 @@ export interface AccountContextType {
   getTotalBalance: () => number;
 }
 
-// Tipos para deudas
-export type DebtType = 'owed_to_me' | 'owed_by_me';
-export type DebtStatus = 'pending' | 'paid';
+// Tipos para pagos de deudas
+export interface IDebtPayment {
+  id: string;
+  debtId: string; // ID de la deuda a la que pertenece
+  amount: number;
+  date: Date;
+  description?: string; // Descripción opcional del pago
+}
+
+export interface DebtPaymentJSON {
+  id: string;
+  debtId: string;
+  amount: number;
+  date: string;
+  description?: string;
+}
 
 export interface IDebt {
   id: string;
@@ -133,14 +148,20 @@ export interface DebtJSON {
 // Tipos para el contexto de deudas
 export interface DebtContextType {
   debts: IDebt[];
+  debtPayments: IDebtPayment[];
   loading: boolean;
   addDebt: (debtData: Partial<IDebt>) => Promise<boolean>;
   deleteDebt: (id: string) => Promise<boolean>;
   updateDebt: (id: string, updatedData: Partial<IDebt>) => Promise<boolean>;
   markDebtAsPaid: (id: string) => Promise<boolean>;
   loadDebts: () => Promise<void>;
+  addDebtPayment: (paymentData: Partial<IDebtPayment>) => Promise<boolean>;
+  deleteDebtPayment: (paymentId: string) => Promise<boolean>;
   getTotalOwedToMe: () => number;
   getTotalOwedByMe: () => number;
+  getTotalPaidForDebt: (debtId: string) => number;
+  getPaymentsForDebt: (debtId: string) => IDebtPayment[];
+  getDebtBalance: (debtId: string) => number;
   getDebtsByType: (type: DebtType) => IDebt[];
   getDebtsByStatus: (status: DebtStatus) => IDebt[];
 }
