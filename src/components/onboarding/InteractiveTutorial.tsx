@@ -9,6 +9,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
+import Svg, { Defs, Mask, Rect, Circle } from 'react-native-svg';
 import { useSettings } from '../../context/SettingsContext';
 import { lightColors, darkColors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
@@ -45,6 +46,8 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
   const [targetPosition, setTargetPosition] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const tooltipAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
   const currentStep = steps[currentStepIndex];
   const isLastStep = currentStepIndex === steps.length - 1;
@@ -53,40 +56,88 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
   useEffect(() => {
     if (visible) {
       setCurrentStepIndex(0);
-      
-      // Fade in cuando se muestra
+      setTargetPosition({ x: 0, y: 0, width: 0, height: 0 });
+
+      // Resetear animaciones
+      tooltipAnim.setValue(0);
+      scaleAnim.setValue(0.8);
+
+      // Fade in del overlay
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 300,
+        duration: 400,
         useNativeDriver: true,
       }).start();
 
-      // Animación de pulso para el spotlight
+      // Animación de entrada del tooltip con delay
+      Animated.sequence([
+        Animated.delay(200),
+        Animated.parallel([
+          Animated.timing(tooltipAnim, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            tension: 100,
+            friction: 8,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start();
+
+      // Animación de pulso para el spotlight (más sutil)
       Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
-            toValue: 1.1,
-            duration: 1000,
+            toValue: 1.05,
+            duration: 2000,
             useNativeDriver: true,
           }),
           Animated.timing(pulseAnim, {
             toValue: 1,
-            duration: 1000,
+            duration: 2000,
             useNativeDriver: true,
           }),
         ])
       ).start();
+    } else {
+      // Resetear animaciones cuando se oculta
+      fadeAnim.setValue(0);
+      tooltipAnim.setValue(0);
+      scaleAnim.setValue(0.8);
+      pulseAnim.setValue(1);
     }
   }, [visible]);
 
   useEffect(() => {
     if (currentStep?.targetRef?.current) {
-      // Medir la posición del elemento target
-      currentStep.targetRef.current.measure((x, y, width, height, pageX, pageY) => {
-        setTargetPosition({ x: pageX, y: pageY, width, height });
-      });
+      // Medir la posición del elemento target con mejor manejo de errores
+      const measureElement = () => {
+        try {
+          currentStep.targetRef!.current.measure((x, y, width, height, pageX, pageY) => {
+            if (width > 0 && height > 0) {
+              setTargetPosition({ x: pageX, y: pageY, width, height });
+            } else {
+              // Reintentar medición si las dimensiones son inválidas
+              setTimeout(measureElement, 100);
+            }
+          });
+        } catch (error) {
+          console.warn('Error measuring element:', error);
+          // Usar posición por defecto si falla la medición
+          setTargetPosition({ x: SCREEN_WIDTH / 2 - 50, y: SCREEN_HEIGHT / 2 - 50, width: 100, height: 100 });
+        }
+      };
+
+      // Pequeño delay para asegurar que el elemento esté renderizado
+      setTimeout(measureElement, 50);
     } else if (currentStep?.position) {
       setTargetPosition(currentStep.position);
+    } else {
+      // Posición por defecto para mensajes sin spotlight
+      setTargetPosition({ x: 0, y: 0, width: 0, height: 0 });
     }
   }, [currentStepIndex, currentStep]);
 
@@ -95,19 +146,73 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
       // Ejecutar la acción con un pequeño delay para mejor UX
       setTimeout(() => {
         currentStep.action?.();
-      }, 100);
+      }, 150);
     }
 
     if (isLastStep) {
       handleComplete();
     } else {
-      setCurrentStepIndex(prev => prev + 1);
+      // Animación sutil al cambiar de paso
+      Animated.parallel([
+        Animated.timing(tooltipAnim, {
+          toValue: 0.7,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 0.9,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setCurrentStepIndex(prev => prev + 1);
+        Animated.parallel([
+          Animated.timing(tooltipAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            tension: 120,
+            friction: 10,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      });
     }
   };
 
   const handlePrevious = () => {
     if (currentStepIndex > 0) {
-      setCurrentStepIndex(prev => prev - 1);
+      // Animación sutil al volver atrás
+      Animated.parallel([
+        Animated.timing(tooltipAnim, {
+          toValue: 0.7,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 0.9,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setCurrentStepIndex(prev => prev - 1);
+        Animated.parallel([
+          Animated.timing(tooltipAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            tension: 120,
+            friction: 10,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      });
     }
   };
 
@@ -133,45 +238,24 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
     }
   };
 
-  // Calcular posición del tooltip
+  // Calcular posición del tooltip con mejor UX - NUNCA tapa el elemento
+  // Tooltip fijo en la parte superior para evitar movimiento
   const getTooltipPosition = () => {
-    const tooltipHeight = 200;
-    const padding = 20;
-    const topMargin = 60; // Margen superior para tooltips sin spotlight
-    
-    // Si no hay spotlight (mensajes iniciales), centrar con margen superior
-    if (currentStep.spotlightType === 'none') {
-      return {
-        top: topMargin,
-        left: padding,
-        right: padding,
-      };
-    }
-    
-    // Si el elemento está en la parte superior, mostrar tooltip abajo
-    if (targetPosition.y < SCREEN_HEIGHT / 2) {
-      return {
-        top: targetPosition.y + targetPosition.height + padding,
-        left: padding,
-        right: padding,
-      };
-    }
-    
-    // Si está en la parte inferior, mostrar tooltip arriba
     return {
-      bottom: SCREEN_HEIGHT - targetPosition.y + padding,
-      left: padding,
-      right: padding,
+      position: 'absolute' as const,
+      top: 60,
+      left: 24,
+      right: 24,
     };
   };
 
   // Calcular posición del spotlight
   const getSpotlightStyle = () => {
     const { x, y, width, height } = targetPosition;
-    const padding = 16; // Padding alrededor del elemento (aumentado de 8 a 16)
+    const padding = 12; // Padding sincronizado con el agujero del overlay
 
     if (currentStep.spotlightType === 'circle') {
-      const radius = Math.max(width, height) / 2 + padding * 2;
+      const radius = Math.max(width, height) / 2 + padding;
       const centerX = x + width / 2;
       const centerY = y + height / 2;
 
@@ -197,69 +281,84 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
   if (!visible) return null;
 
   const styles = StyleSheet.create({
+    overlayContainer: {
+      flex: 1,
+    },
     overlay: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      backgroundColor: 'rgba(0, 0, 0, 0.85)', // Overlay oscuro
     },
-    spotlightContainer: {
-      ...StyleSheet.absoluteFillObject,
-    },
-    spotlight: {
+    spotlightBorder: {
       position: 'absolute',
-      backgroundColor: 'transparent',
       borderWidth: 3,
-      borderColor: colors.primary,
-      shadowColor: colors.primary,
+      borderColor: 'rgba(255, 255, 255, 0.9)',
+      shadowColor: '#fff',
       shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 1,
-      shadowRadius: 20,
-      elevation: 20,
+      shadowOpacity: 0.8,
+      shadowRadius: 12,
+      elevation: 10,
     },
     tooltip: {
-      position: 'absolute',
       backgroundColor: colors.surface,
-      borderRadius: 16,
-      padding: 20,
+      borderRadius: 20,
+      padding: 24,
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      elevation: 8,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.25,
+      shadowRadius: 16,
+      elevation: 16,
+      borderWidth: 1,
+      borderColor: colors.outline,
     },
     tooltipTitle: {
-      fontSize: 20,
-      fontWeight: '700',
+      fontSize: 22,
+      fontWeight: '800',
       color: colors.onSurface,
-      marginBottom: 8,
+      marginBottom: 12,
+      lineHeight: 28,
     },
     tooltipDescription: {
-      fontSize: 15,
+      fontSize: 16,
       color: colors.onSurfaceVariant,
-      lineHeight: 22,
-      marginBottom: 20,
+      lineHeight: 24,
+      marginBottom: 24,
     },
     buttonsContainer: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-end',
       alignItems: 'center',
-    },
-    navigationButtons: {
-      flexDirection: 'row',
       gap: 8,
     },
     button: {
-      paddingHorizontal: 16,
-      paddingVertical: 10,
-      borderRadius: 8,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderRadius: 12,
+      minWidth: 90,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
     },
     skipButton: {
       backgroundColor: 'transparent',
+      borderWidth: 1.5,
+      borderColor: colors.outline,
     },
     backButton: {
       backgroundColor: colors.surfaceVariant,
+      borderWidth: 1,
+      borderColor: colors.outlineVariant,
     },
     nextButton: {
       backgroundColor: colors.primary,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 6,
+      elevation: 6,
+      borderWidth: 0,
     },
     buttonText: {
       fontSize: 15,
@@ -276,24 +375,44 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
     },
     progressContainer: {
       flexDirection: 'row',
-      gap: 6,
-      marginTop: 16,
-      justifyContent: 'center',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 24,
+      paddingHorizontal: 4,
     },
-    progressDot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
+    progressBar: {
+      flex: 1,
+      height: 6,
       backgroundColor: colors.surfaceVariant,
+      borderRadius: 3,
+      marginHorizontal: 12,
+      overflow: 'hidden',
     },
-    progressDotActive: {
+    progressFill: {
+      height: '100%',
       backgroundColor: colors.primary,
-      width: 24,
+      borderRadius: 3,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    tooltipHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
     },
     stepCounter: {
       fontSize: 12,
+      fontWeight: '600',
       color: colors.onSurfaceVariant,
-      marginBottom: 8,
+    },
+    skipButtonCompact: {
+      padding: 4,
+      borderRadius: 8,
+      backgroundColor: 'transparent',
     },
   });
 
@@ -304,85 +423,129 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
       animationType="none"
       statusBarTranslucent
     >
-      <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
-        {/* Spotlight en el elemento target */}
+      <Animated.View style={[styles.overlayContainer, { opacity: fadeAnim }]}>
+        {/* Overlay con agujero transparente */}
+        {currentStep.spotlightType !== 'none' && targetPosition.width > 0 ? (
+          <Svg height={SCREEN_HEIGHT} width={SCREEN_WIDTH} style={StyleSheet.absoluteFill}>
+            <Defs>
+              <Mask id="mask">
+                <Rect x="0" y="0" width={SCREEN_WIDTH} height={SCREEN_HEIGHT} fill="white" />
+                {currentStep.spotlightType === 'circle' ? (
+                  <Circle
+                    cx={targetPosition.x + targetPosition.width / 2}
+                    cy={targetPosition.y + targetPosition.height / 2}
+                    r={Math.max(targetPosition.width, targetPosition.height) / 2 + 12}
+                    fill="black"
+                  />
+                ) : (
+                  <Rect
+                    x={targetPosition.x - 12}
+                    y={targetPosition.y - 12}
+                    width={targetPosition.width + 24}
+                    height={targetPosition.height + 24}
+                    rx={12}
+                    fill="black"
+                  />
+                )}
+              </Mask>
+            </Defs>
+            <Rect
+              x="0"
+              y="0"
+              width={SCREEN_WIDTH}
+              height={SCREEN_HEIGHT}
+              fill="rgba(0, 0, 0, 0.85)"
+              mask="url(#mask)"
+            />
+          </Svg>
+        ) : (
+          <View style={styles.overlay} />
+        )}
+
+        {/* Borde brillante alrededor del elemento enfocado */}
         {currentStep.spotlightType !== 'none' && targetPosition.width > 0 && (
           <Animated.View
             style={[
-              styles.spotlightContainer,
+              styles.spotlightBorder,
+              getSpotlightStyle(),
+              { transform: [{ scale: pulseAnim }] },
             ]}
-          >
-            <Animated.View
-              style={[
-                styles.spotlight,
-                getSpotlightStyle(),
-                { transform: [{ scale: pulseAnim }] },
-              ]}
-            />
-          </Animated.View>
+            pointerEvents="none"
+          />
         )}
 
         {/* Tooltip con información */}
-        <View style={[styles.tooltip, getTooltipPosition()]}>
-          <Text style={styles.stepCounter}>
-            Paso {currentStepIndex + 1} de {steps.length}
-          </Text>
+        <Animated.View
+          style={[
+            styles.tooltip,
+            getTooltipPosition(),
+            {
+              opacity: tooltipAnim,
+              transform: [{ scale: scaleAnim }],
+            },
+          ]}
+        >
+          {/* Header con contador y botón skip */}
+          <View style={styles.tooltipHeader}>
+            <Text style={styles.stepCounter}>
+              Paso {currentStepIndex + 1} de {steps.length}
+            </Text>
+            {onSkip && (
+              <TouchableOpacity
+                style={styles.skipButtonCompact}
+                onPress={handleSkip}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close" size={20} color={colors.onSurfaceVariant} />
+              </TouchableOpacity>
+            )}
+          </View>
           
           <Text style={styles.tooltipTitle}>{currentStep.title}</Text>
           <Text style={styles.tooltipDescription}>{currentStep.description}</Text>
 
-          {/* Progress dots */}
+          {/* Progress bar */}
           <View style={styles.progressContainer}>
-            {steps.map((_, index) => (
+            <Text style={styles.stepCounter}>
+              {currentStepIndex + 1}/{steps.length}
+            </Text>
+            <View style={styles.progressBar}>
               <View
-                key={index}
                 style={[
-                  styles.progressDot,
-                  index === currentStepIndex && styles.progressDotActive,
+                  styles.progressFill,
+                  {
+                    width: `${((currentStepIndex + 1) / steps.length) * 100}%`,
+                  },
                 ]}
               />
-            ))}
+            </View>
           </View>
 
           {/* Botones de navegación */}
           <View style={styles.buttonsContainer}>
-            {onSkip && (
+            {currentStepIndex > 0 && (
               <TouchableOpacity
-                style={[styles.button, styles.skipButton]}
-                onPress={handleSkip}
+                style={[styles.button, styles.backButton]}
+                onPress={handlePrevious}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.buttonText, styles.skipButtonText]}>
-                  Saltar
+                <Text style={[styles.buttonText, styles.backButtonText]}>
+                  Atrás
                 </Text>
               </TouchableOpacity>
             )}
 
-            <View style={styles.navigationButtons}>
-              {currentStepIndex > 0 && (
-                <TouchableOpacity
-                  style={[styles.button, styles.backButton]}
-                  onPress={handlePrevious}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.buttonText, styles.backButtonText]}>
-                    Atrás
-                  </Text>
-                </TouchableOpacity>
-              )}
-
-              <TouchableOpacity
-                style={[styles.button, styles.nextButton]}
-                onPress={handleNext}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.buttonText, styles.nextButtonText]}>
-                  {isLastStep ? '¡Entendido!' : 'Siguiente'}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={[styles.button, styles.nextButton]}
+              onPress={handleNext}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.buttonText, styles.nextButtonText]}>
+                {isLastStep ? '¡Entendido!' : 'Siguiente'}
+              </Text>
+            </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
       </Animated.View>
     </Modal>
   );
