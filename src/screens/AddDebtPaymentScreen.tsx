@@ -6,15 +6,20 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
+  Modal,
+  FlatList,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useDebts } from '../context/DebtContext';
 import { useSettings } from '../context/SettingsContext';
+import { useAccounts } from '../context/AccountContext';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useCurrencyInput } from '../hooks/useCurrencyInput';
+import { useToast } from '../hooks/useToast';
+import { Toast } from '../components/common/Toast';
 import { formatCurrency } from '../utils/formatters';
 import { Ionicons } from '@expo/vector-icons';
+import { IAccount } from '../types';
 
 interface RouteParams {
   debtId: string;
@@ -28,7 +33,9 @@ interface AddDebtPaymentScreenProps {
 export default function AddDebtPaymentScreen({ debtId, onNavigate }: AddDebtPaymentScreenProps) {
   const { debts, addDebtPayment, getDebtBalance } = useDebts();
   const { settings } = useSettings();
+  const { accounts } = useAccounts();
   const colors = useThemeColors();
+  const { toast, showToast, hideToast } = useToast();
 
   if (!debtId) {
     return (
@@ -47,6 +54,8 @@ export default function AddDebtPaymentScreen({ debtId, onNavigate }: AddDebtPaym
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<IAccount | null>(null);
+  const [showAccountPicker, setShowAccountPicker] = useState(false);
 
   if (!debt) {
     return (
@@ -62,15 +71,17 @@ export default function AddDebtPaymentScreen({ debtId, onNavigate }: AddDebtPaym
     const paymentAmount = amountInput.numericValue;
 
     if (!paymentAmount || paymentAmount <= 0) {
-      Alert.alert('Error', 'Por favor ingresa un monto válido');
+      showToast('Por favor ingresa un monto válido', 'error');
+      return;
+    }
+
+    if (!selectedAccount) {
+      showToast('Por favor selecciona una cuenta', 'error');
       return;
     }
 
     if (paymentAmount > remainingBalance) {
-      Alert.alert(
-        'Monto excedido',
-        `El monto no puede ser mayor al saldo pendiente de ${formatCurrency(remainingBalance, settings.currency.symbol)}`
-      );
+      showToast(`El monto no puede ser mayor al saldo pendiente de ${formatCurrency(remainingBalance, settings.currency.symbol)}`, 'error');
       return;
     }
 
@@ -79,17 +90,15 @@ export default function AddDebtPaymentScreen({ debtId, onNavigate }: AddDebtPaym
         debtId,
         amount: paymentAmount,
         date,
+        accountId: selectedAccount.id,
         description: description.trim() || 'Pago parcial',
       });
 
-      Alert.alert('Éxito', 'Pago registrado correctamente', [
-        {
-          text: 'OK',
-          onPress: () => onNavigate?.('Debts'),
-        },
-      ]);
+      showToast('Pago registrado correctamente', 'success');
+      onNavigate?.('Debts');
     } catch (error) {
-      Alert.alert('Error', 'No se pudo registrar el pago');
+      const errorMessage = error instanceof Error ? error.message : 'No se pudo registrar el pago';
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -133,6 +142,32 @@ export default function AddDebtPaymentScreen({ debtId, onNavigate }: AddDebtPaym
 
         <View style={styles.inputGroup}>
           <Text style={[styles.label, { color: colors.textSecondary }]}>
+            Cuenta *
+          </Text>
+          <TouchableOpacity
+            style={[styles.accountButton, { borderColor: colors.border }]}
+            onPress={() => setShowAccountPicker(true)}
+          >
+            <View style={styles.accountContent}>
+              {selectedAccount ? (
+                <>
+                  <Text style={[styles.accountEmoji]}>{selectedAccount.icon}</Text>
+                  <Text style={[styles.accountText, { color: colors.text }]}>
+                    {selectedAccount.name}
+                  </Text>
+                </>
+              ) : (
+                <Text style={[styles.accountPlaceholder, { color: colors.textSecondary }]}>
+                  Seleccionar cuenta
+                </Text>
+              )}
+            </View>
+            <Ionicons name="chevron-down" size={20} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
             Fecha del pago *
           </Text>
           <TouchableOpacity
@@ -160,6 +195,55 @@ export default function AddDebtPaymentScreen({ debtId, onNavigate }: AddDebtPaym
           />
         )}
 
+        <Modal
+          visible={showAccountPicker}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setShowAccountPicker(false)}
+        >
+          <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setShowAccountPicker(false)}
+              >
+                <Ionicons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                Seleccionar Cuenta
+              </Text>
+            </View>
+
+            <FlatList
+              data={accounts.filter(account => account.isActive)}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[styles.accountItem, { backgroundColor: colors.card }]}
+                  onPress={() => {
+                    setSelectedAccount(item);
+                    setShowAccountPicker(false);
+                  }}
+                >
+                  <Text style={styles.accountEmoji}>{item.icon}</Text>
+                  <View style={styles.accountInfo}>
+                    <Text style={[styles.accountName, { color: colors.text }]}>
+                      {item.name}
+                    </Text>
+                    <Text style={[styles.accountBalance, { color: colors.textSecondary }]}>
+                      {formatCurrency(item.balance, settings.currency.symbol)}
+                    </Text>
+                  </View>
+                  {selectedAccount?.id === item.id && (
+                    <Ionicons name="checkmark" size={24} color={colors.primary} />
+                  )}
+                </TouchableOpacity>
+              )}
+              contentContainerStyle={styles.accountList}
+            />
+          </View>
+        </Modal>
+
         <View style={styles.inputGroup}>
           <Text style={[styles.label, { color: colors.textSecondary }]}>
             Descripción (opcional)
@@ -184,6 +268,7 @@ export default function AddDebtPaymentScreen({ debtId, onNavigate }: AddDebtPaym
           </Text>
         </TouchableOpacity>
       </View>
+      <Toast visible={toast.visible} message={toast.message} type={toast.type} onHide={hideToast} />
     </ScrollView>
   );
 }
@@ -269,6 +354,73 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  accountButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+  },
+  accountContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  accountEmoji: {
+    fontSize: 20,
+    marginRight: 12,
+  },
+  accountText: {
+    fontSize: 16,
+  },
+  accountPlaceholder: {
+    fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    paddingTop: 50,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+  },
+  modalCloseButton: {
+    marginRight: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  accountList: {
+    padding: 16,
+  },
+  accountItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  accountInfo: {
+    flex: 1,
+  },
+  accountName: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  accountBalance: {
+    fontSize: 14,
   },
   errorText: {
     textAlign: 'center',

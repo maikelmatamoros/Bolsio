@@ -110,6 +110,7 @@ export interface IDebtPayment {
   debtId: string; // ID de la deuda a la que pertenece
   amount: number;
   date: Date;
+  accountId: string; // ID de la cuenta donde se registra la transacción
   description?: string; // Descripción opcional del pago
 }
 
@@ -118,6 +119,7 @@ export interface DebtPaymentJSON {
   debtId: string;
   amount: number;
   date: string;
+  accountId: string;
   description?: string;
 }
 

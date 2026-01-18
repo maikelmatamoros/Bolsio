@@ -5,6 +5,8 @@ import { TransactionContextType, ITransaction, TransactionType } from '../types'
 
 const TransactionContext = createContext<TransactionContextType | undefined>(undefined);
 
+export { TransactionContext };
+
 interface TransactionProviderProps {
   children: ReactNode;
 }

@@ -1,6 +1,8 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DebtContextType, IDebt, DebtJSON, DebtType, DebtStatus, IDebtPayment, DebtPaymentJSON } from '../types';
+import { useTransactions } from './TransactionContext';
+import { useAccounts } from './AccountContext';
 
 const DebtContext = createContext<DebtContextType | undefined>(undefined);
 
@@ -13,6 +15,10 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [debts, setDebts] = useState<IDebt[]>([]);
   const [debtPayments, setDebtPayments] = useState<IDebtPayment[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // Obtener contexto de transacciones
+  const transactionContext = useTransactions();
+  const { accounts, updateAccountBalance, getAccountById } = useAccounts();
 
   // Cargar deudas desde AsyncStorage
   const loadDebts = async () => {
@@ -152,26 +158,65 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         debtId: paymentData.debtId || '',
         amount: paymentData.amount || 0,
         date: paymentData.date || new Date(),
+        accountId: paymentData.accountId || '',
         description: paymentData.description,
       };
+
+      // Validar que la cuenta existe
+      const account = getAccountById(newPayment.accountId);
+      if (!account) {
+        throw new Error('Cuenta no encontrada');
+      }
+
+      // Obtener la deuda
+      const debt = debts.find(d => d.id === newPayment.debtId);
+      if (!debt) {
+        throw new Error('Deuda no encontrada');
+      }
+
+      // Validar saldo suficiente solo para pagos (deudas que uno debe)
+      if (debt.type === 'owed_by_me') {
+        if (account.balance < newPayment.amount) {
+          throw new Error(`Saldo insuficiente. La cuenta ${account.name} tiene ${account.balance} pero se necesitan ${newPayment.amount}`);
+        }
+      }
 
       const updatedPayments = [...debtPayments, newPayment];
       setDebtPayments(updatedPayments);
       await saveDebtPayments(updatedPayments);
 
-      // Verificar si la deuda está completamente pagada
-      const debt = debts.find(d => d.id === newPayment.debtId);
-      if (debt) {
-        const totalPaid = getTotalPaidForDebt(debt.id) + newPayment.amount;
-        if (totalPaid >= debt.amount && debt.status === 'pending') {
-          await markDebtAsPaid(debt.id);
+      // Crear transacción automática y actualizar balance
+      if (transactionContext) {
+        const transactionType = debt.type === 'owed_to_me' ? 'income' : 'expense';
+        const category = debt.type === 'owed_to_me' ? 'debt_collection' : 'debt_payment';
+        const description = `Pago de deuda: ${debt.description}`;
+
+        const transactionSuccess = await transactionContext.addTransaction({
+          type: transactionType,
+          amount: newPayment.amount,
+          category: category,
+          description: description,
+          date: newPayment.date,
+          accountId: newPayment.accountId,
+        });
+
+        if (transactionSuccess) {
+          // Actualizar balance de la cuenta
+          const balanceOperation = debt.type === 'owed_to_me' ? 'add' : 'subtract';
+          await updateAccountBalance(newPayment.accountId, newPayment.amount, balanceOperation);
         }
+      }
+
+      // Verificar si la deuda está completamente pagada
+      const totalPaid = getTotalPaidForDebt(debt.id) + newPayment.amount;
+      if (totalPaid >= debt.amount && debt.status === 'pending') {
+        await markDebtAsPaid(debt.id);
       }
 
       return true;
     } catch (error) {
       console.error('Error adding debt payment:', error);
-      return false;
+      throw error; // Re-lanzar el error para que sea manejado por el componente
     }
   };
 
@@ -179,25 +224,46 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteDebtPayment = async (paymentId: string): Promise<boolean> => {
     try {
       const payment = debtPayments.find(p => p.id === paymentId);
+      if (!payment) {
+        return false;
+      }
+
       const updatedPayments = debtPayments.filter(p => p.id !== paymentId);
       setDebtPayments(updatedPayments);
       await saveDebtPayments(updatedPayments);
 
+      // Obtener la deuda para determinar el tipo de transacción
+      const debt = debts.find(d => d.id === payment.debtId);
+      if (debt && transactionContext) {
+        // Buscar y eliminar la transacción correspondiente
+        const relatedTransaction = transactionContext.transactions.find(t =>
+          t.accountId === payment.accountId &&
+          t.amount === payment.amount &&
+          Math.abs(t.date.getTime() - payment.date.getTime()) < 60000 && // Dentro de 1 minuto
+          t.description.includes(`Pago de deuda: ${debt.description}`)
+        );
+
+        if (relatedTransaction) {
+          await transactionContext.deleteTransaction(relatedTransaction.id);
+
+          // Revertir el balance de la cuenta
+          const balanceOperation = debt.type === 'owed_to_me' ? 'subtract' : 'add';
+          await updateAccountBalance(payment.accountId, payment.amount, balanceOperation);
+        }
+      }
+
       // Si se elimina un pago, verificar si la deuda vuelve a estar pendiente
-      if (payment) {
-        const debt = debts.find(d => d.id === payment.debtId);
-        if (debt && debt.status === 'paid') {
-          const totalPaid = getTotalPaidForDebt(debt.id);
-          if (totalPaid < debt.amount) {
-            // Marcar como pendiente nuevamente
-            const updatedDebts = debts.map(d =>
-              d.id === debt.id
-                ? { ...d, status: 'pending' as DebtStatus, paidDate: undefined }
-                : d
-            );
-            setDebts(updatedDebts);
-            await saveDebts(updatedDebts);
-          }
+      if (debt && debt.status === 'paid') {
+        const totalPaid = getTotalPaidForDebt(debt.id);
+        if (totalPaid < debt.amount) {
+          // Marcar como pendiente nuevamente
+          const updatedDebts = debts.map(d =>
+            d.id === debt.id
+              ? { ...d, status: 'pending' as DebtStatus, paidDate: undefined }
+              : d
+          );
+          setDebts(updatedDebts);
+          await saveDebts(updatedDebts);
         }
       }
 
