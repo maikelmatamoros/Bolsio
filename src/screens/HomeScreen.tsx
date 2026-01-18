@@ -36,7 +36,7 @@ interface NavigationProp {
 
 interface HomeScreenProps {
   navigation?: NavigationProp;
-  onNavigate?: (screen: 'Home' | 'Transactions' | 'Settings') => void;
+  onNavigate?: (screen: 'Home' | 'Transactions' | 'Debts' | 'Settings') => void;
   quickActionsRef?: React.RefObject<any>;
 }
 

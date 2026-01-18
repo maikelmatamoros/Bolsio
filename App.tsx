@@ -5,9 +5,11 @@ import { TransactionProvider } from './src/context/TransactionContext';
 import { AccountProvider } from './src/context/AccountContext';
 import { CategoryProvider } from './src/context/CategoryContext';
 import { SettingsProvider, useSettings } from './src/context/SettingsContext';
+import { DebtProvider } from './src/context/DebtContext';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { TransactionsScreen } from './src/screens/TransactionsScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
+import { DebtsScreen } from './src/screens/DebtsScreen';
 import { InteractiveTutorial, TutorialStep } from './src/components/onboarding/InteractiveTutorial';
 import { useTutorial } from './src/hooks/useTutorial';
 import { lightColors, darkColors } from './src/constants/colors';
@@ -76,7 +78,7 @@ const darkTheme = {
 
 // Componente interno que usa los insets
 function AppContent() {
-  const [currentScreen, setCurrentScreen] = useState<'Home' | 'Transactions' | 'Settings'>('Home');
+  const [currentScreen, setCurrentScreen] = useState<'Home' | 'Transactions' | 'Debts' | 'Settings'>('Home');
   const insets = useSafeAreaInsets();
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
@@ -151,12 +153,13 @@ function AppContent() {
       {/* Contenido de la pantalla */}
       <View style={dynamicStyles.content}>
         {currentScreen === 'Home' && (
-          <HomeScreen 
-            onNavigate={(screen) => setCurrentScreen(screen as 'Home' | 'Transactions' | 'Settings')} 
+          <HomeScreen
+            onNavigate={(screen) => setCurrentScreen(screen as 'Home' | 'Transactions' | 'Debts' | 'Settings')}
             quickActionsRef={quickActionsRef}
           />
         )}
         {currentScreen === 'Transactions' && <TransactionsScreen />}
+        {currentScreen === 'Debts' && <DebtsScreen />}
         {currentScreen === 'Settings' && <SettingsScreen />}
       </View>
       
@@ -200,6 +203,26 @@ function AppContent() {
             { color: currentScreen === 'Transactions' ? colors.primary : colors.textMuted }
           ]}>
             Transacciones
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={dynamicStyles.tabButton}
+          onPress={() => setCurrentScreen('Debts')}
+          activeOpacity={0.7}
+        >
+          <View style={dynamicStyles.tabIcon}>
+            <Ionicons
+              name={currentScreen === 'Debts' ? 'swap-horizontal' : 'swap-horizontal-outline'}
+              size={24}
+              color={currentScreen === 'Debts' ? colors.primary : colors.textMuted}
+            />
+          </View>
+          <Text style={[
+            dynamicStyles.tabLabel,
+            { color: currentScreen === 'Debts' ? colors.primary : colors.textMuted }
+          ]}>
+            Deudas
           </Text>
         </TouchableOpacity>
         
@@ -307,7 +330,9 @@ function ThemedApp() {
       <AccountProvider>
         <CategoryProvider>
           <TransactionProvider>
-            <AppContent />
+            <DebtProvider>
+              <AppContent />
+            </DebtProvider>
           </TransactionProvider>
         </CategoryProvider>
       </AccountProvider>
