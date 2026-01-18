@@ -96,6 +96,20 @@ export const AddTransactionScreen: React.FC<AddTransactionScreenProps> = ({
       return;
     }
 
+    // Validación de saldo disponible para gastos
+    if (type === 'expense') {
+      const currentBalance = selectedAccount.balance;
+      const availableBalance = isEditMode && transaction ? currentBalance + transaction.amount : currentBalance;
+      
+      if (amountInput.numericValue > availableBalance) {
+        showToast(
+          `Saldo insuficiente. Disponible: ${formatCurrency(availableBalance, settings.currency.symbol)}`,
+          'error'
+        );
+        return;
+      }
+    }
+
     try {
       let success = false;
 
