@@ -6,6 +6,7 @@ import { useSettings } from '../../context/SettingsContext';
 import { lightColors, darkColors } from '../../constants/colors';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
+export type ToastPosition = 'top' | 'bottom' | 'center';
 
 interface ToastProps {
   visible: boolean;
@@ -16,6 +17,7 @@ interface ToastProps {
   actionButtonText?: string;
   onAction?: () => void;
   autoHide?: boolean;
+  position?: ToastPosition;
 }
 
 export const Toast: React.FC<ToastProps> = ({
@@ -27,6 +29,7 @@ export const Toast: React.FC<ToastProps> = ({
   actionButtonText,
   onAction,
   autoHide = true,
+  position = 'top',
 }) => {
   const { settings } = useSettings();
   const colors = settings.theme === 'dark' ? darkColors : lightColors;
@@ -116,12 +119,27 @@ export const Toast: React.FC<ToastProps> = ({
   if (!visible) return null;
 
   const styles = StyleSheet.create({
-    container: {
+    containerTop: {
       position: 'absolute',
       top: insets.top + 8,
       left: 16,
       right: 16,
       zIndex: 9999,
+    },
+    containerBottom: {
+      position: 'absolute',
+      bottom: insets.bottom + 8,
+      left: 16,
+      right: 16,
+      zIndex: 9999,
+    },
+    containerCenter: {
+      position: 'absolute',
+      top: '50%',
+      left: 16,
+      right: 16,
+      zIndex: 9999,
+      transform: [{ translateY: -50 }],
     },
     toast: {
       flexDirection: 'row',
@@ -174,13 +192,26 @@ export const Toast: React.FC<ToastProps> = ({
     },
   });
 
+  const getContainerStyle = () => {
+    switch (position) {
+      case 'top':
+        return styles.containerTop;
+      case 'bottom':
+        return styles.containerBottom;
+      case 'center':
+        return styles.containerCenter;
+      default:
+        return styles.containerTop;
+    }
+  };
+
   return (
     <Animated.View
       style={[
-        styles.container,
+        getContainerStyle(),
         {
           opacity,
-          transform: [{ translateY }],
+          transform: position === 'center' ? [] : [{ translateY }],
         },
       ]}
     >

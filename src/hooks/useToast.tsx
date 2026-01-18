@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { ToastType } from '../components/common/Toast';
+import { ToastType, ToastPosition } from '../components/common/Toast';
 
 interface ToastState {
   visible: boolean;
@@ -8,6 +8,7 @@ interface ToastState {
   actionButtonText?: string;
   onAction?: () => void;
   autoHide?: boolean;
+  position?: ToastPosition;
 }
 
 export const useToast = () => {
@@ -17,7 +18,7 @@ export const useToast = () => {
     type: 'success',
   });
 
-  const showToast = useCallback((message: string, type: ToastType = 'success', actionButtonText?: string, onAction?: () => void, autoHide: boolean = true) => {
+  const showToast = useCallback((message: string, type: ToastType = 'success', actionButtonText?: string, onAction?: () => void, autoHide: boolean = true, position: ToastPosition = 'top') => {
     setToast({
       visible: true,
       message,
@@ -25,6 +26,7 @@ export const useToast = () => {
       actionButtonText,
       onAction,
       autoHide,
+      position,
     });
   }, []);
 

@@ -102,7 +102,8 @@ export default function AddDebtPaymentScreen({ debtId, onNavigate }: AddDebtPaym
           // Navegar al tab correspondiente según el tipo de deuda
           onNavigate?.('Debts', { selectedTab: debt.type });
         },
-        false // No auto-hide
+        false, // No auto-hide
+        'bottom' // Mostrar abajo
       );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'No se pudo registrar el pago';
@@ -284,6 +285,7 @@ export default function AddDebtPaymentScreen({ debtId, onNavigate }: AddDebtPaym
         actionButtonText={toast.actionButtonText}
         onAction={toast.onAction}
         autoHide={toast.autoHide}
+        position={toast.position}
       />
     </ScrollView>
   );
